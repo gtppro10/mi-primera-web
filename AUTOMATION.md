@@ -4,7 +4,11 @@
 
 Los workflows y las pruebas están preparados en el repositorio. No se han
 activado ni verificado los permisos del servidor de GitHub: la API devolvió
-`Forbidden` en este entorno. Sí funciona la subida de ramas por Git.
+`Forbidden` en este entorno. Una consulta a la raíz pública de api.github.com
+confirmó `CONNECT tunnel failed, response 403`: el proxy bloquea ese destino.
+Esto no demuestra que falte un token personal; no hace falta solicitar uno
+para sustituir la autenticación Git que ya funciona. Sí funciona la subida de
+ramas por Git.
 La configuración inicial debe realizarla el propietario del repositorio.
 Esta documentación no significa que el flujo remoto ya esté activo.
 
