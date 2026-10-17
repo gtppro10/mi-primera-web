@@ -27,3 +27,23 @@ test('requiere aprobación y evita conversiones duplicadas',()=>{
  assert.equal(invoice.lines[0].price,1500);
  s.clients[0].name='Editado';assert.notEqual(invoice.client.name,'Editado');
 });
+
+test('descuento antes del IGV, con compatibilidad para documentos antiguos',()=>{
+ assert.deepEqual(totals([{description:'Servicio',qty:2,price:100,discount:10}],18),{subtotal:18000,tax:3240,total:21240});
+ assert.deepEqual(totals([{description:'Servicio',qty:2,price:100,discount:100}],18),{subtotal:0,tax:0,total:0});
+ assert.deepEqual(totals([{description:'Fracción',qty:1.5,price:10,discount:10}],0),{subtotal:1350,tax:0,total:1350});
+ for(const discount of [-1,101,NaN]) assert.throws(()=>totals([{description:'x',qty:1,price:10,discount}],18));
+ const s=seed();s.quotes[0].lines[0].discount=10;s.quotes[0].amounts=totals(s.quotes[0].lines,18);
+ approveQuote(s.quotes[0]);
+ const invoice=convertQuote(s,'q1');
+ assert.equal(invoice.lines[0].discount,10);
+ assert.deepEqual(invoice.amounts,s.quotes[0].amounts);
+});
+
+test('buscador sin acentos y filtro combinado de categoría',async()=>{
+ const {filterProducts}=await import('../js/catalog.js');
+ const products=[{name:'Impresión de tarjetas',type:'Producto',category:'Impresión'}, {name:'Diseño de logotipo',type:'Servicio',category:'Diseño'}];
+ assert.equal(filterProducts(products,'impresion','Todos').length,1);
+ assert.equal(filterProducts(products,'DISEÑO','Diseño').length,1);
+ assert.equal(filterProducts(products,'tarjetas','Diseño').length,0);
+});
