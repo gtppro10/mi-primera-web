@@ -1,14 +1,18 @@
 // Reglas independientes de la pantalla y del almacenamiento.
+export function lineAmounts(line) {
+  const qty = Number(line.qty), price = Number(line.price), discount = Number(line.discount ?? 0);
+  if (!Number.isFinite(qty) || qty <= 0 || !Number.isFinite(price) || price < 0 || !line.description?.trim()) throw new Error('Cada concepto necesita descripción, cantidad positiva y precio válido.');
+  if (!Number.isFinite(discount) || discount < 0 || discount > 100) throw new Error('El descuento debe estar entre 0 y 100 %.');
+  const gross = Math.round(qty * price * 100);
+  if (!Number.isSafeInteger(gross) || gross > 1e12) throw new Error('El importe del concepto es demasiado grande.');
+  const saving = Math.round(gross * discount / 100);
+  return {gross, saving, net: gross - saving};
+}
+
 export function totals(lines, igv) {
   const rate = Number(igv);
   if (!Number.isFinite(rate) || rate < 0 || rate > 100 || !lines.length) throw new Error('Revisa el IGV y agrega al menos un concepto.');
-  const subtotal = lines.reduce((sum, line) => {
-    const qty = Number(line.qty), price = Number(line.price);
-    if (!Number.isFinite(qty) || qty <= 0 || !Number.isFinite(price) || price < 0 || !line.description?.trim()) throw new Error('Cada concepto necesita descripción, cantidad positiva y precio válido.');
-    const cents = Math.round(qty * price * 100);
-    if (!Number.isSafeInteger(cents) || cents > 1e12) throw new Error('El importe del concepto es demasiado grande.');
-    return sum + cents;
-  }, 0);
+  const subtotal = lines.reduce((sum, line) => sum + lineAmounts(line).net, 0);
   const tax = Math.round(subtotal * rate / 100);
   return {subtotal, tax, total: subtotal + tax};
 }

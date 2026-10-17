@@ -1,83 +1,81 @@
-# Nexo · Cotizaciones y borradores para Perú
+# Agencia Skybike Cusco · Etapa 1
 
-Primera etapa: **demostración funcional**, con HTML, CSS y JavaScript sencillos.
-No es un sistema de facturación electrónica operativo. No se usan credenciales
-reales, no se envía información a SUNAT y los borradores **no tienen validez
-tributaria**.
+Demo web de la migración aprobada: **solo datos ficticios**. No conecta Google,
+Supabase ni SUNAT y no reemplaza el sistema operativo de Apps Script.
 
-## Cómo abrirlo
+## Probar la aplicación
 
-Desde la carpeta del proyecto, con Python 3 instalado:
+Con Python 3, desde esta carpeta:
 
 ```bash
 bash run.sh
 ```
 
-En Windows también puedes ejecutar `py -m http.server 8000` desde esa carpeta.
-En tu computadora abre `http://localhost:8000/` y mantén la terminal abierta.
-Ctrl+C detiene el servidor. En Codex, localhost es la máquina remota: requiere
-reenvío de puertos para abrirlo desde tu computadora; el visor de un archivo
-individual no ejecuta esta aplicación. Los módulos JavaScript requieren HTTP.
-No es necesario instalar dependencias ni compilar la aplicación.
+En Windows puedes usar `py -m http.server 8000`. Abre `http://localhost:8000/`
+en el mismo ordenador donde ejecutas el servidor. Mantén la terminal abierta;
+Ctrl+C lo detiene. Desde Codex cloud, localhost es remoto y no es una URL pública.
+Para compartir, incorpora los cambios mediante PR y usa GitHub Pages según
+`AUTOMATION.md`. No abras index.html en un visor de archivos: usa HTTP.
 
-## Recorrido de prueba
+1. En **Catálogo de tours**, busca o filtra por categoría y pulsa **Agregar**.
+2. Agrega varios tours y sus servicios adicionales. Cada tour conserva su salida.
+3. En **Revisar cotización**, elige cliente, fecha/hora, pasajeros y precio.
+4. Define un descuento en soles por persona o usa **Personalizar descuento por
+   pasajero**. No son porcentajes y no se añade IGV automáticamente.
+5. Guarda la cotización; revísala y apruébala en **Cotizaciones**.
+6. Crea una reserva. Se genera también un recibo de demostración.
+7. En **Pagos y saldos**, registra un pago ficticio en PEN y revisa el saldo.
+8. Registra pasajeros en **Clientes y pasajeros** y consulta **Historial**.
+9. Abre recibos/fichas y usa **Imprimir / Guardar PDF**. Es impresión del
+   navegador, no el generador PDF del servidor original.
+10. Cambia una fotografía desde su tarjeta (JPG/PNG/WebP, hasta 2 MB).
 
-1. **Panel principal:** revisa las estadísticas de los registros ficticios.
-2. **Clientes:** crea o edita un contacto con identificador de prueba, por
-   ejemplo `DEMO-004`. No introduzcas información personal o credenciales reales.
-3. **Productos y servicios:** crea o edita conceptos y su precio sin IGV.
-4. **Cotizaciones → Nueva cotización:** selecciona cliente, conceptos y cantidades.
-   El IGV comienza en 18 %, pero es editable por cotización (incluido 0 %).
-5. Revisa subtotal, impuesto y total; guarda la cotización como **Pendiente**.
-6. Usa **Ver** para revisarla y luego **Aprobar**.
-7. Pulsa **Crear borrador**. Aparece en **Borradores de factura**, con el total y
-   los datos conservados. Una cotización solo puede convertirse una vez.
-8. Recarga: tus cambios permanecen en este navegador.
+Las fotografías distribuidas son paisajes de referencia, **no fotos de los tours
+reales**. Fuente/licencia: `images/skybike/SOURCES.md`. Los datos viven solamente
+en `skybike-cusco-demo-v1` del navegador; la demo Nexo anterior queda intacta.
+No hay autenticación real, sincronización, respaldo ni garantías multiusuario.
 
-El cálculo es una simulación uniforme de IGV, no contempla detracciones,
-exoneraciones mixtas, percepciones ni el conjunto de reglas tributarias.
-Los datos viven en localStorage del navegador: no se sincronizan entre equipos,
-no tienen respaldo y se pierden al borrar los datos del sitio. En esta etapa
-no se incluyen inicio de sesión, eliminación, edición de documentos guardados,
-emisión, envío a SUNAT ni comprobantes fiscales.
+## Archivos y alcance
 
-## Archivos y próximos pasos
+- `index.html` / `styles.css`: estructura y diseño adaptable.
+- `script.js`: entrada de la nueva demo.
+- `js/skybike/app.js`: módulos, catálogo, formularios, imágenes e impresión.
+- `js/skybike/domain.js`: descuentos, cotizaciones, reservas, recibos y pagos.
+- `js/skybike/repository.js` / `seed.js`: almacenamiento aislado y datos ficticios.
+- `supabase/001_skybike_proposal.sql`: esquema y RLS **preparados, NO ejecutados**.
+- `supabase/README.md`: roles, límites y validaciones pendientes de base de datos.
+- `docs/SKYBIKE_ETAPA_1.md`: resultados y matriz de todas las funciones originales,
+  incluidas las que se desarrollarán en etapas posteriores.
+- `ARCHITECTURE.md`: contexto de la demo anterior; no describe la nueva aplicación.
+- `AUTOMATION.md`: flujo de Actions/PR/Pages preparado anteriormente. Su activación
+  remota depende de los permisos documentados; no se afirma que esté activo.
 
-- `index.html`: estructura, navegación y aviso permanente de demostración.
-- `styles.css`: diseño profesional adaptable a escritorio y celular.
-- `script.js`: pantallas, formularios e interacción.
-- `js/domain.js`: reglas y cálculos en céntimos.
-- `js/repository.js`: almacenamiento intercambiable por una API futura.
-- `js/seed.js`: clientes, catálogo y cotizaciones ficticios.
-- `js/sunat.js`: contrato de integración deshabilitado; nunca envía documentos.
-- `ARCHITECTURE.md`: responsabilidades, limitaciones y evolución hacia backend,
-  base de datos, usuarios e integración tributaria.
+Los originales Code.gs e Index.html adjuntos no se han ejecutado ni publicado en
+el repositorio. No se accedió a hojas, pagos, archivos o reservas reales.
 
-## Pruebas
+## Pruebas de desarrollo
 
-Con Node.js 22 o superior:
-
-```bash
-node --test tests/domain.test.mjs
-```
-
-Con el servidor activo, Playwright y Chromium disponibles en el entorno de pruebas:
+Con Node.js 24:
 
 ```bash
-node tests/browser.cjs
+npm ci --ignore-scripts
+npm run check
+npm test
+npm run audit:security
+npm run build
+npx --no-install playwright install chromium
+npm run test:browser
 ```
 
-Puedes configurar `DEMO_URL` y `CHROMIUM_PATH`. Playwright es solo una herramienta
-de prueba; los visitantes no necesitan instalarlo.
+La prueba de navegador necesita el servidor HTTP activo. `DEMO_URL` permite
+probar la subruta de Pages; `CHROMIUM_PATH` permite usar un Chromium instalado.
+`dist/` incluye solo recursos estáticos, sin SQL, pruebas, secretos o adjuntos.
+No hay ninguna tarea que aplique SQL a Supabase.
 
-## Publicar en GitHub Pages
+## Antes de una etapa siguiente
 
-1. Incorpora a `main` los cambios preparados en la rama de demostración.
-2. En GitHub abre **Settings → Pages**.
-3. Selecciona **Deploy from a branch**, rama **main**, carpeta **/ (root)** y guarda.
-4. Espera el despliegue en **Actions** y abre el enlace indicado en **Pages**.
-
-La dirección esperada es https://gtppro10.github.io/mi-primera-web/.
-Los enlaces relativos y la navegación con `#` permiten usar esa subruta.
-GitHub Pages sirve la demo, pero no proporciona backend ni base de datos.
-Los datos creados localmente no se suben a GitHub.
+No usar la demo con datos reales. Se requiere autorización separada para crear
+un proyecto de pruebas Supabase, aplicar SQL y validar las políticas con usuarios
+de distintas agencias. La generación PDF de servidor, traducciones, versiones,
+Calendar, WhatsApp, no-show/devoluciones y demás equivalencias están registradas
+en la matriz de conservación; no se han eliminado del sistema original.

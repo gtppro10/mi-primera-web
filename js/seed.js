@@ -6,10 +6,14 @@ export function seed() {
     {id:'c3', name:'Café del Valle (ficticio)', document:'DEMO-003', email:'hola@valle.example', phone:'', address:'Cusco · dirección ficticia'}
   ];
   const products = [
-    {id:'p1', name:'Diseño de página web', type:'Servicio', price:1500},
-    {id:'p2', name:'Soporte técnico · hora', type:'Servicio', price:100},
-    {id:'p3', name:'Teclado inalámbrico demo', type:'Producto', price:120},
-    {id:'p4', name:'Consultoría digital · sesión', type:'Servicio', price:250}
+    {id:'p1', name:'Diseño de página web', type:'Servicio', category:'Diseño', price:1500},
+    {id:'p2', name:'Soporte técnico · hora', type:'Servicio', category:'Mantenimiento', price:100},
+    {id:'p3', name:'Teclado inalámbrico demo', type:'Producto', category:'Otros', price:120},
+    {id:'p4', name:'Consultoría digital · sesión', type:'Servicio', category:'Diseño', price:250},
+    {id:'p5', name:'Impresión de tarjetas · paquete', type:'Producto', category:'Impresión', price:80},
+    {id:'p6', name:'Instalación de vinil · m²', type:'Servicio', category:'Instalación', price:45},
+    {id:'p7', name:'Impresión de banner · m²', type:'Producto', category:'Impresión', price:35},
+    {id:'p8', name:'Mantenimiento de equipo', type:'Servicio', category:'Mantenimiento', price:180}
   ];
   const specs = [
     {client:0, product:0, qty:1, status:'Pendiente'},

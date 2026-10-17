@@ -1,0 +1,75 @@
+name: Publicar en GitHub Pages
+
+on:
+  workflow_run:
+    workflows: [Verificaciones]
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: read
+    outputs:
+      current: ${{ steps.guard.outputs.current }}
+    steps:
+      - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        id: guard
+        with:
+          script: |
+            const {data} = await github.rest.repos.getBranch({...context.repo, branch:'main'});
+            core.setOutput('current', String(data.commit.sha === context.payload.workflow_run.head_sha));
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        if: steps.guard.outputs.current == 'true'
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        if: steps.guard.outputs.current == 'true'
+        with:
+          node-version: '24'
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6
+        if: steps.guard.outputs.current == 'true'
+      - run: node scripts/build.mjs
+        if: steps.guard.outputs.current == 'true'
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
+        if: steps.guard.outputs.current == 'true'
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    if: needs.build.outputs.current == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        id: guard
+        with:
+          script: |
+            const {data} = await github.rest.repos.getBranch({...context.repo, branch:'main'});
+            core.setOutput('current', String(data.commit.sha === context.payload.workflow_run.head_sha));
+      - uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5
+        if: steps.guard.outputs.current == 'true'
+        id: deployment

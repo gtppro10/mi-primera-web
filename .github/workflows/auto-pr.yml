@@ -1,0 +1,50 @@
+name: Automatizar PR de Codex
+
+on:
+  workflow_run:
+    workflows: [Verificaciones]
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codex-pr-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  propose:
+    if: >-
+      vars.CODEX_AUTOMATION_ENABLED == 'true' &&
+      vars.CODEX_APP_ID != '' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      startsWith(github.event.workflow_run.head_branch, 'codex/') &&
+      github.event.workflow_run.actor.login == github.repository_owner
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      # Solo código de la rama predeterminada, nunca de la PR ni de sus artefactos.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+        id: app
+        with:
+          app-id: ${{ vars.CODEX_APP_ID }}
+          private-key: ${{ secrets.CODEX_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ github.event.repository.name }}
+          permission-contents: write
+          permission-pull-requests: write
+          permission-administration: read
+          permission-checks: read
+      - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        env:
+          AUTO_MERGE_ENABLED: ${{ vars.CODEX_AUTOMERGE_ENABLED }}
+        with:
+          github-token: ${{ steps.app.outputs.token }}
+          script: |
+            const automate = require('./.github/scripts/auto-pr.cjs');
+            await automate({github, context, core});

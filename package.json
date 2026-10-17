@@ -1,0 +1,19 @@
+{
+  "name": "agencia-skybike-cusco-demo",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "check": "node scripts/check.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:browser": "node tests/browser.cjs",
+    "build": "node scripts/build.mjs",
+    "audit:security": "npm audit --audit-level=low"
+  },
+  "devDependencies": {
+    "playwright": "1.64.1"
+  }
+}

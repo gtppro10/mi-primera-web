@@ -1,0 +1,77 @@
+name: Verificaciones
+
+on:
+  push:
+    branches: [main, 'codex/**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Pruebas y auditoría
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run check
+      - run: npm test
+      - run: npm run audit:security
+      - run: npm run build
+      - run: npx --no-install playwright install --with-deps chromium
+      - name: Probar la versión publicable en la subruta de Pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/nexo-site/mi-primera-web
+          cp -R dist/. /tmp/nexo-site/mi-primera-web/
+          python3 -m http.server 8000 --bind 127.0.0.1 --directory /tmp/nexo-site > /tmp/nexo-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8000/mi-primera-web/ > /dev/null; then break; fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:8000/mi-primera-web/ > /dev/null
+          DEMO_URL=http://127.0.0.1:8000/mi-primera-web/ npm run test:browser
+
+  security:
+    name: Análisis de seguridad
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: github/codeql-action/init@f051dc808ef3645eb0d08647ec751634ec2304ac # v4
+        with:
+          languages: javascript-typescript
+          build-mode: none
+          queries: security-extended
+      - uses: github/codeql-action/analyze@f051dc808ef3645eb0d08647ec751634ec2304ac # v4
+        with:
+          category: /language:javascript-typescript
+      - name: Bloquear si CodeQL encuentra vulnerabilidades
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SCAN_REF: ${{ github.ref }}
+          SCAN_SHA: ${{ github.sha }}
+        run: node .github/scripts/codeql-gate.cjs

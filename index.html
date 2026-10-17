@@ -3,29 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Nexo · Cotizaciones y facturación demo</title>
+  <title>Agencia Skybike Cusco · Demo</title>
   <link rel="stylesheet" href="./styles.css">
   <script type="module" src="./script.js"></script>
 </head>
 <body>
   <aside class="sidebar">
-    <a class="brand" href="#panel"><span class="brand-icon">N</span> nexo<span class="brand-dot">.</span></a>
-    <p class="sidebar-caption">ESPACIO DE TRABAJO</p>
+    <a class="brand" href="#panel"><span class="brand-icon">S</span> <span class="sky-brand">SKYBIKE<small>AGENCIA · CUSCO</small></span></a>
+    <p class="sidebar-caption">EXPLORA. RESERVA. VIAJA.</p>
     <nav aria-label="Navegación principal">
       <a href="#panel">◈ <span>Panel principal</span></a>
-      <a href="#clientes">♧ <span>Clientes</span></a>
-      <a href="#catalogo">▦ <span>Productos y servicios</span></a>
+      <a href="#catalogo">▦ <span>Catálogo de tours</span></a>
       <a href="#cotizaciones">▤ <span>Cotizaciones</span></a>
-      <a href="#facturas">▧ <span>Borradores de factura</span></a>
+      <a href="#reservas">◷ <span>Reservas</span></a>
+      <a href="#pasajeros">♧ <span>Clientes y pasajeros</span></a>
+      <a href="#pagos">◇ <span>Pagos y saldos</span></a>
+      <a href="#documentos">▧ <span>Recibos y flyers</span></a>
+      <a href="#historial">↺ <span>Historial</span></a>
     </nav>
-    <div class="sidebar-bottom"><span class="demo-dot"></span> Entorno de demostración<p>Perú · Moneda PEN (S/)</p><small>Sin conexión con SUNAT</small></div>
+    <div class="sidebar-bottom"><span class="demo-dot"></span> Entorno de demostración<p>Perú · Moneda PEN (S/)</p><small>Supabase y SUNAT sin conexión</small></div>
   </aside>
   <div class="workspace">
-    <header class="topbar"><span>Mi empresa <span class="muted">/</span> <strong>Empresa Demo Perú</strong></span><span class="avatar" aria-label="Usuario de demostración">DE</span></header>
-    <div class="demo-banner"><strong>DEMO</strong> Datos ficticios. Los borradores no tienen validez tributaria. No se envían comprobantes a SUNAT.</div>
+    <header class="topbar"><span>Mi agencia <span class="muted">/</span> <strong>Agencia Skybike Cusco · Demo</strong></span><span class="avatar" aria-label="Usuario de demostración">DE</span></header>
+    <div class="demo-banner"><strong>DEMO</strong> Solo datos ficticios. Sin conexión a Google, Supabase o SUNAT. Recibos sin validez tributaria.</div>
     <main id="app"></main>
     <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
-    <footer>nexo · Primera etapa <span>Demostración local, sin autenticación ni servicios tributarios</span></footer>
+    <footer>Skybike Cusco · Etapa 1 <span>Los precios y fotografías son de referencia · No son ofertas reales</span></footer>
   </div>
 </body>
 </html>

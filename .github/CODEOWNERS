@@ -1,0 +1,9 @@
+# Archivos sensibles: requieren revisión del propietario incluso para Codex.
+/.github/ @gtppro10
+/tests/ @gtppro10
+/scripts/ @gtppro10
+/package.json @gtppro10
+/package-lock.json @gtppro10
+/js/sunat.js @gtppro10
+/AGENTS.md @gtppro10
+/supabase/ @gtppro10
