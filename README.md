@@ -1,4 +1,4 @@
-# Agencia Skybike Cusco · Etapa 1
+# Agencia Skybike Cusco · Etapas A y B
 
 Demo web de la migración aprobada: **solo datos ficticios**. No conecta Google,
 Supabase ni SUNAT y no reemplaza el sistema operativo de Apps Script.
@@ -35,11 +35,20 @@ reales**. Fuente/licencia: `images/skybike/SOURCES.md`. Los datos viven solament
 en `skybike-cusco-demo-v1` del navegador; la demo Nexo anterior queda intacta.
 No hay autenticación real, sincronización, respaldo ni garantías multiusuario.
 
+## Administración de tours y servicios
+
+Abre **Administrar Tours** o **Servicios Adicionales**. Puedes crear y editar
+registros, activar/desactivar, archivar con confirmación y restaurar. Los tours
+incluyen galería y flyers ES/EN; los flyers oficiales solo se almacenan para su
+uso posterior en cotizaciones PDF, nunca en recibos. Los datos y medios siguen
+siendo locales y ficticios. Consulta `docs/SKYBIKE_ETAPAS_A_B.md`.
+
 ## Archivos y alcance
 
 - `index.html` / `styles.css`: estructura y diseño adaptable.
 - `script.js`: entrada de la nueva demo.
 - `js/skybike/app.js`: módulos, catálogo, formularios, imágenes e impresión.
+- `js/skybike/admin.js`, `admin-ui.js` y `media.js`: administración y cargas seguras.
 - `js/skybike/domain.js`: descuentos, cotizaciones, reservas, recibos y pagos.
 - `js/skybike/repository.js` / `seed.js`: almacenamiento aislado y datos ficticios.
 - `supabase/001_skybike_proposal.sql`: esquema y RLS **preparados, NO ejecutados**.

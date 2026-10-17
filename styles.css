@@ -1119,3 +1119,45 @@ button:disabled { background: #dbe6e1; color: #7c9187; cursor: not-allowed; box-
  .printable { break-inside: auto; }
  .flyer > img { max-height: 85mm; }
 }
+
+/* Etapas A y B: administración por secciones y catálogo de la agencia. */
+.dashboard-shortcuts { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; margin-bottom: 24px; }
+.dashboard-shortcuts a { border: 1px solid #dce6d6; border-radius: 10px; background: white; padding: 18px 14px; font-size: 12px; font-weight: 650; color: #456733; }
+.dashboard-shortcuts a:hover { background: #eff5e9; }
+.catalog-description { min-height: 32px; line-height: 1.5; margin-top: 7px !important; }
+.admin-intro { display: flex; justify-content: space-between; gap: 22px; align-items: center; margin-bottom: 24px; padding: 24px; border: 1px solid #dfe8d8; background: #eef4e8; border-radius: 12px; }
+.admin-intro h2 { font-size: 21px; color: #3e5d2e; }
+.admin-intro p { font-size: 12px; color: #6b7e5f; max-width: 570px; margin-bottom: 0; }
+.admin-item { display: flex; align-items: center; gap: 12px; min-width: 240px; }
+.admin-item img { object-fit: cover; border-radius: 7px; flex-shrink: 0; }
+.admin-actions { min-width: 225px; }
+.admin-actions button { padding: 7px 9px; margin: 3px; font-size: 11px; }
+#product-form details { border: 1px solid #dfe8db; border-radius: 9px; background: #fff; }
+#product-form summary { cursor: pointer; padding: 16px; font-weight: 650; font-size: 13px; color: #456733; background: #f6f9f2; border-radius: 9px; }
+#product-form summary:focus-visible { outline: 3px solid #b4c798; }
+.admin-fields { padding: 18px 16px; display: grid; gap: 16px; }
+.media-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+.media-preview { padding: 10px; border: 1px solid #e0e8d9; border-radius: 8px; display: grid; gap: 7px; min-width: 0; }
+.media-preview img { width: 100%; height: 155px; object-fit: contain; background: #f6f7f3; border-radius: 5px; }
+.media-preview span { font-size: 10px; overflow-wrap: anywhere; color: #6b7e5f; }
+.media-preview .text-button { font-size: 10px; }
+#media-state { font-size: 11px; }
+@media(max-width:700px) {
+ .dashboard-shortcuts { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+ .dashboard-shortcuts a { padding: 15px 12px; font-size: 11px; }
+ .admin-intro { flex-direction: column; align-items: start; padding: 20px; }
+ .admin-intro h2 { font-size: 19px; }
+ .media-grid { gap: 8px; }
+ .media-preview img { height: 125px; }
+ .admin-fields { padding: 15px 12px; }
+ #product-form .line-editor { grid-template-columns: 1fr; }
+}
+.catalog-photo-button { display: block; width: 100%; padding: 0; border: 0; border-radius: 0; background: transparent; }
+.catalog-photo-button:hover { box-shadow: none; filter: brightness(.97); background: transparent; }
+.product-type { pointer-events: none; }
+:root { --teal: #527b32; }
+.brand-icon, .hero-link { background: #527b32; }
+.hero-link:hover { background: #3f6125; }
+.category-tab.selected { background: #527b32; border-color: #527b32; }
+.sky-logo { width: 55px; height: 45px; object-fit: contain; background: white; border: 1px solid #e2e8d9; border-radius: 7px; }
+.usd-price { display: block; font-size: 10px; color: #738369; margin: -10px 0 16px; }

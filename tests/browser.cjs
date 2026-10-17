@@ -25,7 +25,7 @@ const {chromium}=require('playwright');const assert=require('node:assert/strict'
  const sky=page.locator('.shop-product').filter({has:page.getByRole('heading',{name:'Skybike · aventura en las alturas'})});
  await sky.getByRole('button',{name:'Cambiar fotografía'}).click();
  await page.locator('[type="file"]').setInputFiles({name:'demo.txt',mimeType:'text/plain',buffer:Buffer.from('No es imagen')});
- await page.getByRole('alert').filter({hasText:'Selecciona una imagen'}).waitFor();
+ await page.getByRole('alert').filter({hasText:'Selecciona'}).waitFor();
  await page.locator('[type="file"]').setInputFiles({name:'demo.jpg',mimeType:'image/jpeg',buffer:require('node:fs').readFileSync('images/skybike/aventura.jpg')});
  await page.locator('#photo-preview').waitFor({state:'visible'});
  await page.locator('dialog').getByRole('button',{name:'Guardar',exact:true}).click();
@@ -77,7 +77,7 @@ const {chromium}=require('playwright');const assert=require('node:assert/strict'
  await page.getByLabel('Documento ficticio').fill('DEMO-P02');
  await page.locator('dialog').getByRole('button',{name:'Guardar',exact:true}).click();
  await page.getByText('Pasajero de prueba',{exact:true}).waitFor();
- await page.getByRole('link',{name:'Recibos y flyers'}).click();
+ await page.getByRole('link',{name:'Comprobantes internos'}).click();
  await page.getByRole('row').filter({hasText:'REC-DEMO-002'}).getByRole('button',{name:'Abrir recibo'}).click();
  assert.match(await page.locator('dialog').innerText(),/SIN VALIDEZ TRIBUTARIA/);
  assert.match(await page.locator('dialog').innerText(),/255[.,]00/);

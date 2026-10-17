@@ -1,3 +1,6 @@
+> Registro histórico de la etapa 1. La administración de tours/servicios y sus
+> imágenes/flyers se amplió después: consulta SKYBIKE_ETAPAS_A_B.md.
+
 # Agencia Skybike Cusco · Resultado de la etapa 1
 
 ## Separación del sistema original
