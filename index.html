@@ -1,19 +1,31 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi primera página web</title>
-    <link rel="stylesheet" href="./styles.css">
-    <script src="./script.js" defer></script>
-  </head>
-  <body>
-    <main>
-      <h1>¡Hola, mundo!</h1>
-      <img class="ilustracion" src="./programacion.svg" alt="Una ventana de código con símbolos de programación" width="480" height="280">
-      <p class="descripcion">Estoy aprendiendo a programar con Codex</p>
-      <button id="empezar" type="button">Empezar</button>
-      <p id="mensaje" role="status" aria-live="polite"></p>
-    </main>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nexo · Cotizaciones y facturación demo</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./script.js"></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="#panel"><span class="brand-icon">N</span> nexo<span class="brand-dot">.</span></a>
+    <p class="sidebar-caption">ESPACIO DE TRABAJO</p>
+    <nav aria-label="Navegación principal">
+      <a href="#panel">◈ <span>Panel principal</span></a>
+      <a href="#clientes">♧ <span>Clientes</span></a>
+      <a href="#catalogo">▦ <span>Productos y servicios</span></a>
+      <a href="#cotizaciones">▤ <span>Cotizaciones</span></a>
+      <a href="#facturas">▧ <span>Borradores de factura</span></a>
+    </nav>
+    <div class="sidebar-bottom"><span class="demo-dot"></span> Entorno de demostración<p>Perú · Moneda PEN (S/)</p><small>Sin conexión con SUNAT</small></div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar"><span>Mi empresa <span class="muted">/</span> <strong>Empresa Demo Perú</strong></span><span class="avatar" aria-label="Usuario de demostración">DE</span></header>
+    <div class="demo-banner"><strong>DEMO</strong> Datos ficticios. Los borradores no tienen validez tributaria. No se envían comprobantes a SUNAT.</div>
+    <main id="app"></main>
+    <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
+    <footer>nexo · Primera etapa <span>Demostración local, sin autenticación ni servicios tributarios</span></footer>
+  </div>
+</body>
 </html>

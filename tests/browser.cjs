@@ -1,0 +1,80 @@
+// Requiere Playwright y Chromium en el entorno de pruebas, no en la aplicación.
+const {chromium}=require('playwright');
+const assert=require('node:assert/strict');
+(async()=>{
+ const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});
+ const page=await browser.newPage({viewport:{width:1440,height:1000}});
+ const errors=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ page.on('requestfailed',r=>errors.push(r.url()));
+ const base=process.env.DEMO_URL||'http://127.0.0.1:8000/';
+ try {
+ await page.goto(base);await page.getByRole('heading',{name:'Panel principal',exact:true}).waitFor();
+ await page.screenshot({path:'/tmp/nexo-desktop.png',fullPage:true});
+ await page.getByRole('link',{name:'Clientes',exact:false}).click();
+ await page.getByRole('button',{name:'Nuevo cliente'}).click();
+ await page.getByLabel('Nombre o empresa').fill('Cliente prueba <img src=x>');
+ await page.getByLabel('Identificador ficticio').fill('DEMO-TEST');
+ await page.getByLabel('Correo ficticio').fill('test@cliente.example');
+ await page.getByRole('button',{name:'Guardar',exact:true}).click();
+ await page.getByText('Cliente prueba <img src=x>',{exact:true}).waitFor();
+ assert.equal(await page.locator('td img').count(),0);
+ await page.getByRole('button',{name:'Editar',exact:true}).last().click();
+ await page.getByLabel('Nombre o empresa').fill('Cliente prueba');
+ await page.getByRole('button',{name:'Guardar',exact:true}).click();
+ await page.getByRole('link',{name:'Productos y servicios'}).click();
+ await page.getByRole('button',{name:'Nuevo concepto'}).click();
+ await page.getByLabel('Nombre',{exact:true}).fill('Servicio prueba');
+ await page.getByLabel('Tipo',{exact:true}).selectOption('Servicio');
+ await page.getByLabel('Precio unitario').fill('100');
+ await page.getByRole('button',{name:'Guardar',exact:true}).click();
+ await page.getByRole('heading',{name:'Servicio prueba'}).waitFor();
+ await page.getByRole('link',{name:'Cotizaciones',exact:false}).click();
+ await page.getByRole('button',{name:'Nueva cotización'}).click();
+ await page.getByLabel('Cliente',{exact:true}).selectOption({label:'Cliente prueba'});
+ await page.getByLabel('Concepto',{exact:true}).selectOption({label:'Servicio prueba'});
+ await page.getByLabel('Cantidad',{exact:true}).fill('2');
+ await page.getByLabel('IGV (%)').fill('0');
+ assert.match(await page.locator('#quote-total').innerText(),/200[.,]00/);
+ await page.getByLabel('IGV (%)').fill('18');
+ assert.match(await page.locator('#quote-total').innerText(),/236[.,]00/);
+ await page.getByRole('button',{name:'Agregar concepto'}).click();
+ await page.getByRole('button',{name:'Quitar concepto'}).last().click();
+ await page.getByRole('button',{name:'Guardar cotización'}).click();
+ const row=page.getByRole('row').filter({hasText:'COT-004'});
+ assert.match(await row.innerText(),/236[.,]00/);
+ assert.equal(await row.getByRole('button',{name:'Crear borrador'}).count(),0);
+ await row.getByRole('button',{name:'Aprobar'}).click();
+ await row.getByRole('button',{name:'Crear borrador'}).click();
+ await page.getByRole('heading',{name:'Borradores de factura',exact:true}).waitFor();
+ await page.getByRole('button',{name:'Ver borrador'}).click();
+ assert.match(await page.locator('dialog').innerText(),/SIN VALIDEZ TRIBUTARIA/);
+ assert.match(await page.locator('dialog').innerText(),/236[.,]00/);
+ await page.keyboard.press('Escape');
+ await page.reload();
+ assert.equal(await page.getByRole('button',{name:'Ver borrador'}).count(),1);
+ await page.getByRole('link',{name:'Cotizaciones',exact:false}).click();
+ await page.getByRole('heading',{name:'Cotizaciones',exact:true}).waitFor();
+ assert.match(await page.getByRole('row').filter({hasText:'COT-004'}).innerText(),/Convertida/);
+ await page.getByRole('button',{name:'Nueva cotización'}).click();
+ await page.getByRole('button',{name:'Quitar concepto'}).click();
+ await page.getByRole('button',{name:'Guardar cotización'}).click();
+ assert.match(await page.getByRole('alert').innerText(),/al menos un concepto/);
+ await page.keyboard.press('Escape');
+ await page.setViewportSize({width:375,height:812});
+ for(const hash of ['panel','clientes','catalogo','cotizaciones','facturas']){
+ await page.goto(base+'#'+hash);await page.waitForTimeout(80);
+ assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),hash+' desborda');
+ }
+ await page.goto(base+'#panel');
+ await page.screenshot({path:'/tmp/nexo-mobile.png',fullPage:true});
+ assert.deepEqual(errors,[]);
+ console.log('PASS: clientes alta/edición, catálogo, cotización multilínea, IGV, aprobación, borrador, persistencia, texto seguro y cinco vistas móviles.');
+ // Un error de almacenamiento no debe borrar datos ni fingir un guardado exitoso.
+ const blocked=await browser.newPage();
+ await blocked.addInitScript(()=>{Storage.prototype.setItem=()=>{throw new Error('Almacenamiento bloqueado');};});
+ await blocked.goto(base);
+ await blocked.getByRole('heading',{name:'No se pudieron abrir los datos locales'}).waitFor();
+ await blocked.close();
+ }finally{await browser.close();}
+})().catch(e=>{console.error(e);process.exitCode=1;});
