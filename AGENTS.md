@@ -1,4 +1,4 @@
-# Desarrollo de Nexo
+# Desarrollo de Agencia Skybike Cusco
 
 ## Entrega de cambios
 
@@ -30,3 +30,14 @@
   la automatización. Los cambios sensibles exigen incorporación manual según
   AUTOMATION.md y CODEOWNERS. Toda nueva integración fiscal necesita una etapa
   independiente y autorización explícita del usuario.
+
+## Etapa 1 de Skybike (alcance autorizado)
+
+- Usar solo datos ficticios en `skybike-cusco-demo-v1`. No modificar la clave
+  `nexo-demo-v1`, los adjuntos originales ni los sistemas de Google.
+- El descuento Skybike es un monto por pasajero en soles; puede personalizarse
+  por posición. No sustituirlo por porcentaje ni añadir IGV automáticamente.
+- `supabase/001_skybike_proposal.sql` es una propuesta NO ejecutada. No conectar
+  Supabase, aplicar SQL o migrar datos reales sin autorización separada.
+- Consultar `docs/SKYBIKE_ETAPA_1.md` para la matriz de funciones originales y
+  pendientes. No afirmar equivalencia completa ni validez tributaria.

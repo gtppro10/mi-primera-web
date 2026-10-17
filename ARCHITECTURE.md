@@ -1,3 +1,7 @@
+> Documento de la demo Nexo anterior, conservado como referencia. La etapa actual
+> Agencia Skybike Cusco está descrita en `docs/SKYBIKE_ETAPA_1.md` y
+> `supabase/README.md`. No representa una migración ejecutada.
+
 # Arquitectura de la demostración Nexo
 
 ## Etapa 1: lo que funciona

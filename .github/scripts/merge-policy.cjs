@@ -1,5 +1,5 @@
 const REQUIRED_CHECKS=['Pruebas y auditoría','Análisis de seguridad'];
-const sensitive=path=>/^(\.github\/|tests\/|scripts\/|package(?:-lock)?\.json$|js\/sunat\.js$|AGENTS\.md$)/.test(path);
+const sensitive=path=>/^(\.github\/|tests\/|scripts\/|package(?:-lock)?\.json$|js\/sunat\.js$|AGENTS\.md$|supabase\/)/.test(path);
 function mergePolicy({run,owner,repository,files,protection,checks,enabled,autoMergeAllowed}) {
  if(enabled!=='true')return 'La incorporación automática aún no está autorizada.';
  if(run.event!=='push'||run.head_repository?.full_name!==repository||!run.head_branch?.startsWith('codex/')||run.actor?.login!==owner)return 'Origen no autorizado.';

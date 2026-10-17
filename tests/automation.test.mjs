@@ -27,7 +27,7 @@ test('auto-merge solo con autorización, origen propio, controles exitosos y mai
  for(const modify of cases){const c=valid();modify(c);assert.notEqual(mergePolicy(c),null);}
 });
 test('cambios sensibles y renombrados requieren incorporación manual',()=>{
- for(const filename of ['.github/workflows/checks.yml','tests/browser.cjs','scripts/check.mjs','package.json','package-lock.json','js/sunat.js','AGENTS.md']){
+ for(const filename of ['.github/workflows/checks.yml','tests/browser.cjs','scripts/check.mjs','package.json','package-lock.json','js/sunat.js','AGENTS.md','supabase/001_skybike_proposal.sql']){
   for(const file of [{filename},{filename:'nuevo.txt',previous_filename:filename}]){
    const c=valid();c.files=[file];assert.notEqual(mergePolicy(c),null);
   }
