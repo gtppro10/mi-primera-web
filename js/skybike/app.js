@@ -1,3 +1,4 @@
+import {homeMenu,moduleLinks,pendingAdministration} from './navigation.js';
 import {createOperationsUI} from './operations-ui.js';
 import {documentHTML} from './documents.js';
 import {parseWhatsApp} from './whatsapp.js';
@@ -14,7 +15,7 @@ const date=s=>new Intl.DateTimeFormat('es-PE',{dateStyle:'medium',timeZone:'Amer
 const docMoney=(value,doc)=>doc.currency==='USD'?new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(value/100/doc.exchangeRate):money(value);
 const baseCategories=['Aventura','Machu Picchu','Tradicional','Trekking','Servicios'];
 const categories=()=>['Todos',...new Set([...baseCategories,...state.products.filter(p=>!p.archivedAt).map(p=>p.category)])];
-const titles={panel:'Tu próxima aventura empieza aquí',catalogo:'Descubre nuestros tours',cotizaciones:'Cotizaciones',reservas:'Reservas',pasajeros:'Clientes y pasajeros',pagos:'Pagos y saldos',documentos:'Comprobantes internos',tours:'Administrar Tours',servicios:'Administrar Servicios',historial:'Historial de actividad',reportes:'Reportes operativos'};
+const titles={panel:'Menú principal',resumen:'Tu próxima aventura empieza aquí',administracion:'Administración',catalogo:'Descubre nuestros tours',cotizaciones:'Cotizaciones',reservas:'Reservas',pasajeros:'Clientes y pasajeros',pagos:'Pagos y saldos',documentos:'Comprobantes internos',tours:'Administrar Tours',servicios:'Administrar Servicios',historial:'Historial de actividad',reportes:'Reportes operativos'};
 const badge=status=>`<span class="badge ${['Aprobada','PAGADA','CONFIRMADA'].includes(status)?'green':'blue'}">${esc(status)}</span>`;
 const empty=t=>`<div class="empty">${t}</div>`;
 let state,search='',category='Todos',route='panel';
@@ -35,11 +36,14 @@ function cards(){
 function quoteRows(){return state.quotes.slice().reverse().map(q=>`<tr><td><strong>${esc(q.number)}</strong><small>${date(q.date)}</small></td><td>${esc(q.client.name)}</td><td class="amount">${docMoney(q.totals.total,q)}</td><td>${badge(q.status)}</td><td class="actions">${button('quote','Ver',q.id,true)} ${q.status==='Pendiente'?button('approve','Aprobar',q.id,true):q.status==='Aprobada'?button('reserve','Crear reserva',q.id):''}</td></tr>`);}
 function render(){
  if(!state)return;
+ app.dataset.route=Object.hasOwn(titles,location.hash.slice(1))?location.hash.slice(1):'panel';
  if(!categories().includes(category))category='Todos';
  route=Object.hasOwn(titles,location.hash.slice(1))?location.hash.slice(1):'panel';
  document.querySelectorAll('nav a').forEach(a=>{const active=a.hash===`#${route}`;a.classList.toggle('active',active);if(active)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
  let content='';
- if(route==='panel'){
+ if(route==='panel')content=homeMenu();
+ if(route==='administracion')content=pendingAdministration();
+ if(route==='resumen'){
  const pending=state.reservations.reduce((s,r)=>s+balance(state,r.id).balance,0);
  content=`<section class="sky-hero"><div><span class="eyebrow">EXPERIENCIAS QUE CONECTAN</span><h2>Cusco se vive.<br>Nosotros lo organizamos.</h2><p>Todos tus tours, pasajeros y reservas, en un solo lugar.</p><a class="hero-link" href="#catalogo">Explorar el catálogo →</a></div><img src="./images/skybike/machu.jpg" alt="Paisaje de referencia para explorar Cusco"></section><section class="dashboard-shortcuts" aria-label="Accesos rápidos"><a href="#catalogo">＋ Nueva cotización</a><a href="#tours">▦ Administrar tours</a><a href="#servicios">◇ Servicios adicionales</a><a href="#documentos">▧ Comprobantes internos</a></section><section class="stats">${[['Tours activos',state.products.filter(p=>p.type==='Tour'&&p.active).length],['Cotizaciones',state.quotes.length],['Reservas',state.reservations.length],['Saldo pendiente',money(pending)]].map(([label,value])=>`<article class="stat"><span class="stat-label">${label}</span><strong>${value}</strong><small>Datos ficticios de demostración</small></article>`).join('')}</section><section class="card"><div class="card-heading"><h2>Últimas cotizaciones</h2><a href="#cotizaciones">Ver todas →</a></div>${table(['Documento','Cliente','Total','Estado','Acciones'],quoteRows().slice(0,5))}</section>`;
  }
@@ -52,9 +56,9 @@ function render(){
  if(route==='documentos')content=`<div class="info-note">Puedes imprimir o usar «Guardar como PDF» del navegador. Los comprobantes son de prueba. Los flyers se incluyen opcionalmente solo en cotizaciones; no en comprobantes ni reservas.</div><section class="card"><div class="card-heading"><h2>Recibos de demostración</h2>${button('receipt-new','＋ Nuevo comprobante')}</div>${table(['Recibo','Reserva','Cliente','Acción'],state.receipts.map(r=>`<tr><td>${esc(r.number)}</td><td>${esc(state.reservations.find(x=>x.id===r.reservationId)?.number)}</td><td>${esc(r.client.name)}</td><td>${button('receipt','Abrir recibo',r.id)}</td></tr>`))}</section><section class="card spaced"><div class="card-heading"><h2>Fichas informativas de referencia</h2></div><div class="flyer-list">${state.products.filter(p=>p.type==='Tour'&&!p.archivedAt).map(p=>button('tour-info',esc(p.name),p.id,true)).join('')}</div></section>`;
  if(route==='historial')content=operations.historyHTML();
  if(route==='reportes')content=operations.reportHTML();
- app.innerHTML=`<div class="page-heading"><div><span class="eyebrow">AGENCIA SKYBIKE CUSCO · ETAPAS A–F</span><h1>${titles[route]}</h1><p>${route==='catalogo'?'Selecciona con imágenes. Ajusta cada experiencia a tus pasajeros.':'Demostración funcional · Tus datos originales permanecen intactos.'}</p></div>${route==='cotizaciones'?'<a class="hero-link" href="#catalogo">＋ Nueva cotización</a>':''}</div>${content}`;
+ app.innerHTML=route==='panel'?content:`${route!=='panel'?'<a class="back-home" href="#panel">← Volver al inicio</a>':''}<div class="page-heading"><div><span class="eyebrow">AGENCIA SKYBIKE CUSCO · ETAPAS A–F</span><h1 tabindex="-1">${titles[route]}</h1><p>${route==='panel'?'SKYBIKE CUSCO · Tu agencia, a un toque.':route==='catalogo'?'Selecciona con imágenes. Ajusta cada experiencia a tus pasajeros.':'Demostración funcional · Tus datos originales permanecen intactos.'}</p></div>${route==='cotizaciones'?'<a class="hero-link" href="#catalogo">＋ Nueva cotización</a>':''}</div>${moduleLinks(route)}${content}`;
 }
-function dialog(title,content){document.querySelector('dialog')?.remove();const d=document.createElement('dialog');d.setAttribute('aria-labelledby','dialog-title');d.innerHTML=`<div class="dialog-header"><h2 id="dialog-title">${title}</h2><button class="secondary" aria-label="Cerrar">×</button></div>${content}`;document.body.append(d);d.querySelector('[aria-label="Cerrar"]').onclick=()=>d.close();d.addEventListener('close',()=>{d.remove();render();});d.showModal();return d;}
+function dialog(title,content){document.querySelector('dialog')?.remove();const d=document.createElement('dialog');d.setAttribute('aria-labelledby','dialog-title');d.innerHTML=`<div class="dialog-header"><h2 id="dialog-title">${title}</h2><button class="secondary" aria-label="Cerrar">×</button></div>${moduleLinks(route)}${content}`;document.body.append(d);d.querySelector('[aria-label="Cerrar"]').onclick=()=>d.close();d.addEventListener('close',()=>{d.remove();render();});d.showModal();return d;}
 function field(label,name,value='',extra=''){return `<label>${label}<input name="${name}" value="${esc(value)}" ${extra}></label>`;}
 function select(label,name,options,value){return `<label>${label}<select name="${name}" aria-label="${label}">${options.map(([key,text])=>`<option value="${esc(key)}" ${key===value?'selected':''}>${esc(text)}</option>`).join('')}</select></label>`;}
 function formDialog(title,fields,save){const d=dialog(title,`<form><div class="form-fields">${fields}<p class="form-error" role="alert"></p><button>Guardar</button></div></form>`);d.querySelector('form').onsubmit=e=>{e.preventDefault();try{save(new FormData(e.target));d.close();notice('Datos ficticios guardados.');}catch(error){d.querySelector('.form-error').textContent=error.message;}};return d;}
@@ -142,5 +146,7 @@ function openProduct(type,productId){return productForm(type,productId,{getState
 function confirmCatalog(product,action,execute){const d=dialog(action,`<div class="form-fields"><p>${esc(action)}: <strong>${esc(product.name)}</strong>. Los documentos guardados no cambiarán.</p><button id="confirm-catalog">Confirmar</button><p class="form-error" role="alert"></p></div>`);d.querySelector('#confirm-catalog').onclick=()=>{try{execute();d.close();notice('Estado del catálogo actualizado.');}catch(error){d.querySelector('.form-error').textContent=error.message;}};}
 const operations=createOperationsUI({getState:()=>state,commit:change,dialog,formDialog,esc,field,select,table,button,money,notice,render});
 app.addEventListener('submit',event=>{if(['history-filters','report-filters'].includes(event.target.id)){event.preventDefault();operations.submit(event.target);}});
-window.addEventListener('hashchange',()=>{document.querySelector('dialog')?.close();render();});
+const menuToggle=document.querySelector('#navigation-toggle');
+menuToggle.onclick=()=>{const open=menuToggle.getAttribute('aria-expanded')!=='true';menuToggle.setAttribute('aria-expanded',String(open));document.querySelector('.sidebar').classList.toggle('menu-open',open);};
+window.addEventListener('hashchange',()=>{document.querySelector('dialog')?.close();menuToggle.setAttribute('aria-expanded','false');document.querySelector('.sidebar').classList.remove('menu-open');render();window.scrollTo(0,0);app.querySelector('h1')?.focus({preventScroll:true});});
 render();

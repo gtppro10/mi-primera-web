@@ -8,7 +8,7 @@ const {chromium}=require('playwright');const assert=require('node:assert/strict'
  page.on('request',r=>{if(!r.url().startsWith(new URL(base).origin)&&!r.url().startsWith('data:'))external.push(r.url());});
  await page.addInitScript(()=>{if(!localStorage.getItem('nexo-demo-v1'))localStorage.setItem('nexo-demo-v1','PRESERVAR');window.print=()=>{window.__printed=true;};});
  try {
- await page.goto(base);await page.getByRole('heading',{name:'Tu próxima aventura empieza aquí'}).waitFor();
+ await page.goto(base);await page.getByRole('heading',{name:'Menú principal'}).waitFor();
  await page.screenshot({path:'/tmp/skybike-panel.png',fullPage:true});
  await page.getByRole('link',{name:'Clientes y pasajeros'}).click();
  await page.getByRole('button',{name:'Nuevo cliente'}).click();
