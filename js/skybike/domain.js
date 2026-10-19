@@ -33,6 +33,7 @@ export function createQuote(state,draft) {
   if(!draft.lines.some(l=>l.type==='Tour'))throw new Error('La cotización necesita al menos un tour.');
   if(!['PEN','USD'].includes(draft.currency)||!Number.isFinite(Number(draft.exchangeRate))||Number(draft.exchangeRate)<=0)throw new Error('Revisa la moneda y el tipo de cambio.');
   for(const l of draft.lines){
+    if(l.productId&&!state.products.some(p=>p.id===l.productId&&p.active&&!p.archivedAt))throw new Error('Un tour o servicio de la selección está inactivo o archivado. Revisa el catálogo.');
     if(l.type==='Tour'&&(!/^\d{4}-\d{2}-\d{2}$/.test(l.date)||!/^([01]\d|2[0-3]):[0-5]\d$/.test(l.time)))throw new Error('Completa la fecha y hora de cada tour.');
     if(l.type!=='Tour'&&!draft.lines.some(t=>t.type==='Tour'&&t.id===l.parentId))throw new Error('Asocia cada servicio adicional a un tour.');
   }

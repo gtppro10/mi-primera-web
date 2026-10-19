@@ -15,3 +15,7 @@ Licencia MIT distribuida por el proyecto; copia en LICENSE.txt.
 
 Se conservan los archivos de origen sin edición. Antes de una publicación
 comercial, sustituir por fotografías verificadas de los tours de la agencia.
+
+`logo-agencia.jpg`: logotipo de Skybike Cusco proporcionado por el usuario en
+Code.gs. Se extrajo la imagen, sin ejecutar el archivo ni copiar su configuración
+al repositorio. No forma parte del material MIT de Start Bootstrap.

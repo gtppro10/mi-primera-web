@@ -34,15 +34,19 @@ create table public.sky_categories (
 );
 create table public.sky_catalog_items (
  id uuid primary key default gen_random_uuid(), organization_id uuid not null references public.sky_organizations(id),
- category_id uuid, legacy_id text, name text not null,
+ category_id uuid, legacy_id text, name text not null, internal_code text not null,
+ short_description text not null default '', description text not null default '', itinerary text not null default '',
+ schedules time[] not null default '{}', recommendations text not null default '', observations text not null default '',
+ price_usd numeric(14,2) check(price_usd>=0), archived_at timestamptz,
  kind text not null check(kind in ('tour','product','service')),
  price_pen numeric(14,2) not null check(price_pen>=0),
+ check(kind<>'tour' or price_pen>0),
  modality text not null check(modality in ('per_person','per_unit','per_booking')),
  duration_minutes integer check(duration_minutes>=15), duration_label text,
  includes_text text not null default '', excludes_text text not null default '',
  translations jsonb not null default '{}', include_flyer_in_pdf boolean not null default false,
  active boolean not null default true, created_at timestamptz not null default now(),
- unique(id,organization_id), unique(organization_id,legacy_id),
+ unique(id,organization_id), unique(organization_id,legacy_id), unique(organization_id,internal_code),
  foreign key(category_id,organization_id) references public.sky_categories(id,organization_id)
 );
 create table public.sky_tour_stages (
