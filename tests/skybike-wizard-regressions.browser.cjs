@@ -1,6 +1,6 @@
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
-const {chooseWizardClient,goToWizardStep,wizardStep}=require('./wizard-helpers.cjs');
+const {chooseWizardClient,goToWizardStep,wizardStep,saveWizardToList}=require('./wizard-helpers.cjs');
 const storageKey='skybike-cusco-demo-v1';
 const state=page=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)),storageKey);
 
@@ -63,7 +63,7 @@ const state=page=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)),stora
   await add(isolated,'valle');await isolated.getByRole('button',{name:'Revisar cotización'}).click();await isolated.locator('#editor').waitFor();
   await isolated.getByLabel('Adelanto (S/)',{exact:true}).fill('20');await isolated.getByLabel('Referencia del pago').fill('REFERENCIA-FICTICIA-FASE1');
   const receiptBefore=structuredClone((await state(isolated)).draft);await isolated.getByRole('button',{name:'Cerrar',exact:true}).click();
-  await isolated.goto(base+'#cotizador');await goToWizardStep(isolated,6);await isolated.getByRole('button',{name:'Guardar cotización demo'}).click();await isolated.getByRole('heading',{name:'Cotizaciones',exact:true}).waitFor();
+  await isolated.goto(base+'#cotizador');await goToWizardStep(isolated,6);await saveWizardToList(isolated);
   const afterQuote=await state(isolated);assert.deepEqual(afterQuote.draft,receiptBefore);assert.equal(afterQuote.quotes.length,2);assert.equal(afterQuote.reservations.length,1);assert.equal(afterQuote.receipts.length,1);assert.equal(afterQuote.payments.length,1);
   await isolated.goto(base+'#catalogo');await isolated.getByRole('button',{name:'Revisar cotización'}).click();assert.equal(await isolated.getByLabel('Adelanto (S/)',{exact:true}).inputValue(),'20');assert.equal(await isolated.getByLabel('Referencia del pago').inputValue(),'REFERENCIA-FICTICIA-FASE1');await isolated.close();
   assert.deepEqual(errors,[]);

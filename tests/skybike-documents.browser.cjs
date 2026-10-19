@@ -1,7 +1,7 @@
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
 const {execFileSync}=require('node:child_process');
-const {goToWizardStep,chooseWizardClient}=require('./wizard-helpers.cjs');
+const {goToWizardStep,chooseWizardClient,saveWizardToList}=require('./wizard-helpers.cjs');
 (async()=>{
  const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||chromium.executablePath(),args:['--no-sandbox']});
  const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];
@@ -26,7 +26,7 @@ const {goToWizardStep,chooseWizardClient}=require('./wizard-helpers.cjs');
  await page.locator('[name="conditions"]').fill('Condiciones ficticias de prueba CDE.');
  await page.locator('[name="notes"]').fill('Observaciones ficticias CDE.');
  await goToWizardStep(page,6);
- await page.getByRole('button',{name:'Guardar cotización demo',exact:true}).click();
+ await saveWizardToList(page);
  await page.locator('tr').filter({hasText:'COT-DEMO-002'}).getByRole('button',{name:'Ver',exact:true}).click();
  assert.equal(await page.locator('.flyer-page').count(),0);
  await page.locator('#include-flyers').check();assert.equal(await page.locator('.flyer-page').count(),1);

@@ -1,6 +1,6 @@
 // Pruebas completas de Skybike. No acceden a Google, Supabase ni SUNAT.
 const {chromium}=require('playwright');const assert=require('node:assert/strict');
-const {goToWizardStep,chooseWizardClient}=require('./wizard-helpers.cjs');
+const {goToWizardStep,chooseWizardClient,saveWizardToList}=require('./wizard-helpers.cjs');
 (async()=>{
  const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||chromium.executablePath(),args:['--no-sandbox']});
  const page=await browser.newPage({viewport:{width:1440,height:1000}});
@@ -56,8 +56,7 @@ const {goToWizardStep,chooseWizardClient}=require('./wizard-helpers.cjs');
  await goToWizardStep(page,5);
  assert.match(await page.locator('#quote-total').innerText(),/355[.,]00/);
  await goToWizardStep(page,6);
- await page.getByRole('button',{name:'Guardar cotización demo'}).click();
- await page.getByRole('heading',{name:'Cotizaciones',exact:true}).waitFor();
+ await saveWizardToList(page);
  const row=page.getByRole('row').filter({hasText:'COT-DEMO-002'});
  assert.match(await row.innerText(),/355[.,]00/);
  assert.equal(await row.getByRole('button',{name:'Crear reserva'}).count(),0);

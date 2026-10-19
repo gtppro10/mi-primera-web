@@ -9,11 +9,15 @@
   "scripts": {
     "check": "node scripts/check.mjs",
     "test": "node --test tests/*.test.mjs",
-    "test:browser": "node tests/browser.cjs && node tests/skybike-admin.browser.cjs && node tests/skybike-documents.browser.cjs && node tests/skybike-operations.browser.cjs && node tests/skybike-navigation.browser.cjs && node tests/skybike-wizard.browser.cjs && node tests/skybike-wizard-regressions.browser.cjs",
+    "test:browser": "node tests/browser.cjs && node tests/skybike-admin.browser.cjs && node tests/skybike-documents.browser.cjs && node tests/skybike-operations.browser.cjs && node tests/skybike-navigation.browser.cjs && node tests/skybike-wizard.browser.cjs && node tests/skybike-wizard-regressions.browser.cjs && node tests/skybike-quote-pdf.browser.cjs && node tests/skybike-delivery-a.browser.cjs",
     "build": "node scripts/build.mjs",
     "audit:security": "npm audit --audit-level=low"
   },
   "devDependencies": {
     "playwright": "1.64.1"
+  },
+  "dependencies": {
+    "jspdf": "4.2.1",
+    "jspdf-autotable": "5.0.9"
   }
 }

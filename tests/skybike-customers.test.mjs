@@ -1,0 +1,8 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {normalizeCustomerEmail} from '../js/skybike/customers.js';
+import {seed} from '../js/skybike/seed.js';
+import {createReceipt} from '../js/skybike/domain.js';
+import {saveReservation} from '../js/skybike/operations.js';
+test('correo de cliente opcional y formato validado sin confundirlo con acceso de trabajadores',()=>{assert.equal(normalizeCustomerEmail(''),'');assert.equal(normalizeCustomerEmail(' demo+cliente@example.com '),'demo+cliente@example.com');for(const email of ['a@@example.com','invalido','a@example','a b@example.com','a@example.com\nBcc:otro@example.com'])assert.throws(()=>normalizeCustomerEmail(email));});
+test('comprobante conserva correo en reserva, instantánea y revisión; rechazo atómico de correo inválido',()=>{const s=seed();const base=s.quotes[0],d={...s.draft,clientId:s.clients[0].id,clientSnapshot:{...s.clients[0],email:'cliente.demo@example.com'},lines:structuredClone(base.lines).map(l=>({...l,date:'2027-04-20'})),advance:30,method:'Yape',reference:'CORREO-DEMO',requestId:'email-receipt'};const before=structuredClone(s);assert.throws(()=>createReceipt(s,{...d,clientSnapshot:{...d.clientSnapshot,email:'no-valido'}}));assert.deepEqual(s,before);const receipt=createReceipt(s,d),r=s.reservations.find(r=>r.id===receipt.reservationId);assert.equal(receipt.client.email,'cliente.demo@example.com');assert.equal(r.client.email,receipt.client.email);saveReservation(s,{...d,clientSnapshot:r.client,lines:r.lines,notes:'Revisión ficticia',status:r.status},r.id);assert.equal(s.receipts.at(-1).client.email,'cliente.demo@example.com');assert.equal(s.reservations.find(x=>x.id===r.id).client.email,'cliente.demo@example.com');});

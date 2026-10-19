@@ -1,3 +1,4 @@
+import {normalizeCustomerEmail} from './customers.js';
 // Importes en céntimos de PEN. El descuento es monetario, nunca porcentual.
 export const id = () => crypto.randomUUID();
 export const now = () => new Date().toISOString();
@@ -41,6 +42,7 @@ export function createQuote(state,draft) {
     if(l.type==='Tour'&&(!Number.isFinite(Date.parse(l.date+'T12:00:00Z'))||new Date(l.date+'T12:00:00Z').toISOString().slice(0,10)!==l.date))throw new Error('La fecha del tour no existe.');
     if(l.type!=='Tour'&&!draft.lines.some(t=>t.type==='Tour'&&t.id===l.parentId))throw new Error('Asocia cada servicio adicional a un tour.');
   }
+  if(draft.clientSnapshot?.email!==undefined)normalizeCustomerEmail(draft.clientSnapshot.email);
   const totals=totalDocument(draft.lines);
   const quote={requestId:draft.requestId,id:id(),number:`COT-DEMO-${String(state.quotes.length+1).padStart(3,'0')}`,date:now(),client:structuredClone(draft.clientSnapshot?.name?.trim()?{...client,...draft.clientSnapshot}:client),conditions:draft.conditions||'Tarifas y disponibilidad de demostración. Confirmar antes de reservar.',lines:structuredClone(draft.lines),totals,currency:draft.currency,exchangeRate:draft.currency==='PEN'?1:Number(draft.exchangeRate),language:draft.language||'es',validity:Number(draft.validity||7),notes:draft.notes,status:'Pendiente'};
   if(!Number.isInteger(quote.validity)||quote.validity<1||quote.validity>365)throw new Error('La vigencia debe estar entre 1 y 365 días.');
