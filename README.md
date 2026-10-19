@@ -110,3 +110,10 @@ Google ni SUNAT. Esta rama requiere revisión e incorporación manual.
 El inicio ahora es un menú de nueve tarjetas, con dos columnas en celulares,
 regreso visible desde cada módulo y menú secundario plegable. Administración
 está identificada como pendiente. Consulta la [guía de navegación](docs/SKYBIKE_NAVEGACION_MOVIL.md).
+
+## Fase 1 de la especificación maestra
+
+Cotizaciones ahora utiliza un asistente de seis pasos con borrador independiente,
+catálogo compacto y equivalencias PEN/USD. La preferencia ES/EN se guarda; la
+traducción integral del PDF y el envío WhatsApp pertenecen a la fase 2. Consulta
+[la guía de fase 1](docs/SKYBIKE_FASE_1.md) para funciones, pruebas y pendientes.

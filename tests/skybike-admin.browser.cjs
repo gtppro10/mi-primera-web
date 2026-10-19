@@ -1,4 +1,5 @@
 const {chromium}=require('playwright');const assert=require('node:assert/strict');const fs=require('node:fs');
+const {goToWizardStep,chooseWizardClient}=require('./wizard-helpers.cjs');
 (async()=>{
  const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||chromium.executablePath(),args:['--no-sandbox']});
  const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];
@@ -97,7 +98,10 @@ const {chromium}=require('playwright');const assert=require('node:assert/strict'
  await page.locator('.shop-product').getByRole('button',{name:'Agregar',exact:false}).click();
  assert.equal(await page.locator('.basket-items li').count(),2);
  await page.getByRole('button',{name:'Revisar cotización'}).click();
+ await chooseWizardClient(page);
+ await goToWizardStep(page,5);
  assert.match(await page.locator('#quote-total').innerText(),/235[.,]00/);
+ await goToWizardStep(page,6);
  await page.getByRole('button',{name:'Guardar cotización demo'}).click();
  await page.getByRole('heading',{name:'Cotizaciones',exact:true}).waitFor();
  const quoteRow=page.getByRole('row').filter({hasText:'COT-DEMO-002'});
