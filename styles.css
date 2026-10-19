@@ -1201,3 +1201,13 @@ fieldset {border:1px solid #dce4d5;border-radius:12px;padding:14px;display:grid;
 .paper-table tr:last-child td{border-bottom:1px solid #a5bb94}
 .paper-table td strong{font-size:inherit}
 @media print{dialog.document-dialog[open]{background:white!important;border-radius:0!important;min-height:0!important}}
+
+/* Etapa F: operaciones y filtros, manteniendo el tema de la agencia. */
+.filter-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:end;margin:16px 0}
+.check-option{display:flex;align-items:center;gap:10px}.check-option input{width:auto;flex:0 0 auto}
+#reservation-lines{display:grid;gap:16px}
+#reservation-total{font-weight:700;color:#365c20}
+@media(max-width:700px){.filter-grid{grid-template-columns:1fr}.filter-grid button{width:100%}.card-heading{flex-wrap:wrap}.check-option{font-size:13px}}
+
+.operations-card{padding:20px}
+@media(max-width:700px){.operations-card{padding:14px}}
