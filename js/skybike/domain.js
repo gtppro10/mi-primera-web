@@ -28,8 +28,10 @@ export function totalDocument(lines) {
   },{gross:0,discount:0,total:0});
 }
 export function createQuote(state,draft) {
+  if(draft.requestId){const previous=state.quotes.find(q=>q.requestId===draft.requestId);if(previous)return previous;}
   const client=state.clients.find(c=>c.id===draft.clientId);
   if(!client)throw new Error('Selecciona un cliente.');
+  if(draft.clientSnapshot&&!draft.clientSnapshot.name?.trim())throw new Error('Completa el nombre del cliente.');
   if(!draft.lines.some(l=>l.type==='Tour'))throw new Error('La cotización necesita al menos un tour.');
   if(!['PEN','USD'].includes(draft.currency)||!Number.isFinite(Number(draft.exchangeRate))||Number(draft.exchangeRate)<=0)throw new Error('Revisa la moneda y el tipo de cambio.');
   for(const l of draft.lines){
@@ -38,7 +40,7 @@ export function createQuote(state,draft) {
     if(l.type!=='Tour'&&!draft.lines.some(t=>t.type==='Tour'&&t.id===l.parentId))throw new Error('Asocia cada servicio adicional a un tour.');
   }
   const totals=totalDocument(draft.lines);
-  const quote={id:id(),number:`COT-DEMO-${String(state.quotes.length+1).padStart(3,'0')}`,date:now(),client:structuredClone(client),lines:structuredClone(draft.lines),totals,currency:draft.currency,exchangeRate:draft.currency==='PEN'?1:Number(draft.exchangeRate),language:draft.language||'es',validity:Number(draft.validity||7),notes:draft.notes,status:'Pendiente'};
+  const quote={requestId:draft.requestId,id:id(),number:`COT-DEMO-${String(state.quotes.length+1).padStart(3,'0')}`,date:now(),client:structuredClone(draft.clientSnapshot?.name?.trim()?draft.clientSnapshot:client),conditions:draft.conditions||'Tarifas y disponibilidad de demostración. Confirmar antes de reservar.',lines:structuredClone(draft.lines),totals,currency:draft.currency,exchangeRate:draft.currency==='PEN'?1:Number(draft.exchangeRate),language:draft.language||'es',validity:Number(draft.validity||7),notes:draft.notes,status:'Pendiente'};
   if(!Number.isInteger(quote.validity)||quote.validity<1||quote.validity>365)throw new Error('La vigencia debe estar entre 1 y 365 días.');
   state.quotes.push(quote);record(state,'Cotización creada',quote.number);return quote;
 }
@@ -50,7 +52,8 @@ export function approve(state,quoteId) {
 export function reserve(state,quoteId) {
   const quote=state.quotes.find(q=>q.id===quoteId);
   if(!quote||quote.status!=='Aprobada'||state.reservations.some(r=>r.quoteId===quoteId))throw new Error('Aprueba la cotización; cada cotización solo puede convertirse una vez.');
-  const reservation={...structuredClone(quote),id:id(),quoteId,quoteNumber:quote.number,number:`RES-DEMO-${String(state.reservations.length+1).padStart(3,'0')}`,status:'CONFIRMADA',date:now()};
+  const operational=structuredClone(quote); for(const line of operational.lines)delete line.flyers;
+  const reservation={...operational,id:id(),quoteId,quoteNumber:quote.number,number:`RES-DEMO-${String(state.reservations.length+1).padStart(3,'0')}`,status:'CONFIRMADA',date:now()};
   state.reservations.push(reservation);quote.status='Convertida';
   const receipt={...structuredClone(reservation),id:id(),reservationId:reservation.id,number:`REC-DEMO-${String(state.receipts.length+1).padStart(3,'0')}`,status:'Recibo de demostración'};
   state.receipts.push(receipt);record(state,'Reserva y recibo demo creados',reservation.number);return reservation;
@@ -70,3 +73,16 @@ export function pay(state,reservationId,value,method,reference='') {
 }
 export function removeLine(draft,lineId) {draft.lines=draft.lines.filter(l=>l.id!==lineId&&l.parentId!==lineId);}
 export function record(state,action,reference) {state.history.push({id:id(),date:now(),action,reference});}
+
+// La UI confirma esta operación sobre una copia del estado antes de persistirla.
+export function createReceipt(state,draft) {
+  if(draft.requestId){const existing=state.receipts.find(r=>r.requestId===draft.requestId);if(existing)return existing;}
+  const advance=amount(draft.advance??0),total=totalDocument(draft.lines).total;
+  if(advance>total)throw new Error('El adelanto no puede superar el total.');
+  if(!['Efectivo','Yape','Plin','Transferencia','Tarjeta'].includes(draft.method||'Efectivo'))throw new Error('Selecciona un medio de pago válido.');
+  const working=structuredClone(state);
+  const q=createQuote(working,draft);approve(working,q.id);const r=reserve(working,q.id);
+  if(advance)pay(working,r.id,advance/100,draft.method||'Efectivo',draft.reference||'');
+  const receipt=working.receipts.find(x=>x.reservationId===r.id);receipt.requestId=draft.requestId;
+  Object.assign(state,working);return receipt;
+}

@@ -1161,3 +1161,43 @@ button:disabled { background: #dbe6e1; color: #7c9187; cursor: not-allowed; box-
 .category-tab.selected { background: #527b32; border-color: #527b32; }
 .sky-logo { width: 55px; height: 45px; object-fit: contain; background: white; border: 1px solid #e2e8d9; border-radius: 7px; }
 .usd-price { display: block; font-size: 10px; color: #738369; margin: -10px 0 16px; }
+
+/* Etapas C–E: vista previa y salida A4 del mismo documento. */
+fieldset {border:1px solid #dce4d5;border-radius:12px;padding:14px;display:grid;gap:12px;min-width:0}
+.inline-service {margin-top:12px;display:grid;gap:10px;border-top:1px solid #dce4d5;padding-top:12px}
+#paste-preview {white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
+.document-dialog {width:900px;max-width:96vw;padding:0}
+.document-controls {padding:18px;display:grid;gap:12px;background:#f1f5ec}
+.document-controls input {width:auto}
+.sky-document,.flyer-page {font-family:Arial,sans-serif;background:white;color:#172110;padding:24px;font-size:11px;line-height:1.4;overflow-wrap:anywhere}
+.paper-header {border-top:6px solid #527b32;padding-top:18px;display:grid;grid-template-columns:1.6fr 1fr;gap:18px;align-items:center}
+.paper-brand {display:flex;gap:10px;align-items:center}.paper-brand img{width:85px;height:65px;object-fit:contain}.paper-brand h2{color:#365c20;font-size:21px;margin:0}.paper-brand p{font-size:9px}
+.paper-number {border:1.5px solid #527b32;border-radius:12px;text-align:center;padding:12px;color:#365c20}.paper-number h2{font-size:16px;margin:0}
+.paper-warning{text-align:center;font-size:9px;color:#527b32}
+.paper-boxes,.paper-bottom{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:15px 0;align-items:start}
+.paper-boxes section,.paper-contact,.paper-totals,.paper-policy{border:1px solid #d1dec5;border-radius:10px;padding:12px}
+.sky-document h3{color:#365c20;font-size:12px;margin:0 0 7px}
+.paper-boxes p,.paper-totals p{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #dce4d5;padding-bottom:4px;margin:5px 0}
+.paper-boxes span{text-align:right}.sky-document p{white-space:pre-wrap}
+.paper-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:10px;min-width:0}
+.paper-table th,.paper-table td{border:1px solid #a5bb94;padding:7px 5px;white-space:pre-wrap;vertical-align:top;overflow-wrap:anywhere}
+.paper-table th{color:#365c20;font-size:9px}.extra-row td{background:#f5f8f1}.extra-row small{display:block;color:#527b32;font-size:8px}
+.paper-policy{margin-top:12px}.paper-contact p{font-size:10px;margin:4px 0}.paper-totals p:last-child{font-size:14px;color:#365c20}
+.flyer-page{height:273mm;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;margin-top:20px}
+.flyer-page h2{font-size:16px;text-align:center;flex:0 0 auto}.flyer-page img{width:100%;height:235mm;object-fit:contain;min-height:0}.flyer-page small{font-size:9px}
+@media(max-width:600px){.sky-document{padding:12px}.paper-header{grid-template-columns:1fr}.paper-boxes,.paper-bottom{grid-template-columns:1fr}.paper-table{font-size:8px}.paper-table td,.paper-table th{padding:3px;font-size:8px}.paper-brand h2{font-size:18px}.flyer-page{height:130vw}.flyer-page img{height:100vw}.document-controls{font-size:13px}}
+@media print {
+ @page{size:A4;margin:12mm}
+ html,body{height:auto!important;overflow:visible!important;background:white}
+ dialog.document-dialog[open]{display:block!important;inset:auto!important;width:100%!important;max-width:none!important;height:auto!important;max-height:none!important;overflow:visible!important;padding:0!important}
+ #document-output{display:block!important;overflow:visible!important}
+ .sky-document{padding:0;font-size:10px}.paper-header{grid-template-columns:1.6fr 1fr}.paper-boxes,.paper-bottom{grid-template-columns:1fr 1fr}
+ .paper-table{font-size:9px}.paper-table th,.paper-table td{font-size:9px;padding:5px;}
+ .paper-table thead{display:table-header-group}.paper-table tr,.paper-boxes,.paper-header,.paper-bottom{break-inside:avoid;page-break-inside:avoid}
+ .paper-policy p{orphans:3;widows:3}.paper-policy h3,.paper-section{break-after:avoid}
+ .flyer-page{break-before:page;page-break-before:always;margin:0;padding:0;height:272mm;overflow:hidden;break-inside:avoid}
+ .flyer-page img{height:238mm;max-height:238mm;object-fit:contain}
+}
+.paper-table tr:last-child td{border-bottom:1px solid #a5bb94}
+.paper-table td strong{font-size:inherit}
+@media print{dialog.document-dialog[open]{background:white!important;border-radius:0!important;min-height:0!important}}

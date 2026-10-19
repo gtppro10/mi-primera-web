@@ -1,8 +1,8 @@
-# Referencia visual del comprobante · pendiente de etapa D
+# Referencia visual del comprobante · etapas D/E
 
 El usuario compartió en el chat una imagen del comprobante original y anunció
-que proporcionaría ese modelo. Esta nota registra la referencia; **no afirma que
-el PDF actual ya la reproduzca**. No se cambió el generador durante A/B.
+que proporcionaría ese modelo. La implementación C/D/E conserva la estructura descrita a continuación,
+con datos comerciales ficticios. Consulta `SKYBIKE_CDE.md` para uso y límites.
 
 Modelo observado:
 
@@ -22,10 +22,10 @@ Modelo observado:
 - Bordes finos verdes, tarjetas redondeadas y textos legibles.
 
 Regla obligatoria: este comprobante, los recibos de adelanto y las fichas de reserva
-no llevan flyers. Los flyers oficiales se incorporarán solo a cotizaciones PDF
+no llevan flyers. Los flyers oficiales se incorporan opcionalmente solo a cotizaciones PDF
 en la etapa E, una imagen proporcionada por página A4, sin distorsión y con opción
 de cotizar sin flyers. El modelo recibido no autoriza conexión a SUNAT.
 
-Antes de implementar D: comparar el PDF A4 con la referencia, probar saltos de
+Validación de D: comparar el PDF A4 con la referencia, probar saltos de
 página, textos largos, múltiples tours/adicionales y resumen de pagos. Los datos
 personales y números mostrados en la captura no se usan como datos de prueba.

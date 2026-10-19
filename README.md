@@ -88,3 +88,11 @@ un proyecto de pruebas Supabase, aplicar SQL y validar las políticas con usuari
 de distintas agencias. La generación PDF de servidor, traducciones, versiones,
 Calendar, WhatsApp, no-show/devoluciones y demás equivalencias están registradas
 en la matriz de conservación; no se han eliminado del sistema original.
+
+## Comprobantes y cotizaciones A4 (C/D/E)
+
+Consulta [la guía de C/D/E](docs/SKYBIKE_CDE.md) para WhatsApp, adelantos,
+servicios por tour y PDF con flyers exclusivos de cotizaciones. La generación
+usa Imprimir / Guardar como PDF del navegador. Solo datos ficticios.
+Las pruebas PDF requieren `pdfinfo` y `pdftotext` (paquete `poppler-utils`).
+Esta rama requiere revisión e incorporación manual; no autoriza publicación.
