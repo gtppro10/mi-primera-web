@@ -1,16 +1,22 @@
 // Pruebas completas de Skybike. No acceden a Google, Supabase ni SUNAT.
 const {chromium}=require('playwright');const assert=require('node:assert/strict');
+const {mkdtempSync,chmodSync,rmSync}=require('node:fs');
+const {join}=require('node:path');
+const {tmpdir}=require('node:os');
 const {goToWizardStep,chooseWizardClient,saveWizardToList}=require('./wizard-helpers.cjs');
 (async()=>{
- const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||chromium.executablePath(),args:['--no-sandbox']});
- const page=await browser.newPage({viewport:{width:1440,height:1000}});
+ const artifacts=mkdtempSync(join(tmpdir(),'skybike-browser-'));
+ let browser,page,failure;
+ try{
+ chmodSync(artifacts,0o700);
+ browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||chromium.executablePath(),args:['--no-sandbox']});
+ page=await browser.newPage({viewport:{width:1440,height:1000}});
  const base=process.env.DEMO_URL||'http://127.0.0.1:8000/';const errors=[],external=[];
  page.on('pageerror',e=>errors.push(e.message));page.on('requestfailed',r=>errors.push(r.url()));
  page.on('request',r=>{if(!r.url().startsWith(new URL(base).origin)&&!r.url().startsWith('data:'))external.push(r.url());});
  await page.addInitScript(()=>{if(!localStorage.getItem('nexo-demo-v1'))localStorage.setItem('nexo-demo-v1','PRESERVAR');window.print=()=>{window.__printed=true;};});
- try {
  await page.goto(base);await page.getByRole('heading',{name:'Menú principal'}).waitFor();
- await page.screenshot({path:'/tmp/skybike-panel.png',fullPage:true});
+ await page.screenshot({path:join(artifacts,'skybike-panel.png'),fullPage:true});
  await page.getByRole('link',{name:'Clientes y pasajeros'}).click();
  await page.getByRole('button',{name:'Nuevo cliente'}).click();
  await page.getByLabel('Nombre',{exact:true}).fill('Cliente demo <script>');
@@ -30,7 +36,7 @@ const {goToWizardStep,chooseWizardClient,saveWizardToList}=require('./wizard-hel
  await page.getByRole('heading',{name:'Descubre nuestros tours'}).waitFor();
  assert.equal(await page.locator('.shop-product').count(),7);
  await page.waitForFunction(()=>[...document.querySelectorAll('.product-picture img')].every(i=>i.complete&&i.naturalWidth>0));
- await page.screenshot({path:'/tmp/skybike-catalogo.png',fullPage:true});
+ await page.screenshot({path:join(artifacts,'skybike-catalogo.png'),fullPage:true});
  const sky=page.locator('.shop-product').filter({has:page.getByRole('heading',{name:'Skybike · aventura en las alturas'})});
  assert.equal(await page.locator('.shop-product').getByRole('button',{name:'Cambiar fotografía'}).count(),0);
  assert.equal(await page.locator('.shop-product').getByRole('button',{name:'Ver ficha'}).count(),0);
@@ -103,9 +109,15 @@ const {goToWizardStep,chooseWizardClient,saveWizardToList}=require('./wizard-hel
   await page.goto(base+'#'+route);await page.waitForTimeout(80);
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),route+' desborda');
  }
- await page.goto(base+'#catalogo');await page.waitForTimeout(100);await page.screenshot({path:'/tmp/skybike-mobile.png',fullPage:true});
+ await page.goto(base+'#catalogo');await page.waitForTimeout(100);await page.screenshot({path:join(artifacts,'skybike-mobile.png'),fullPage:true});
  assert.deepEqual(errors,[]);assert.deepEqual(external,[]);
  const blocked=await browser.newPage();await blocked.addInitScript(()=>{Storage.prototype.setItem=()=>{throw new Error('Almacenamiento bloqueado');};});await blocked.goto(base);await blocked.getByRole('heading',{name:'No se pudieron abrir los datos locales'}).waitFor();await blocked.close();
  console.log('PASS Skybike: fotos/carga, catálogo, múltiples tours y adicionales, descuentos por pasajero, cotización → reserva/recibo, pagos/saldos, pasajeros, PDF de impresión, historial, persistencia y 8 pantallas móviles; sin llamadas externas.');
- }finally{await browser.close();}
+ }catch(error){failure=error;try{if(page&&!page.isClosed())await page.screenshot({path:join(artifacts,'skybike-browser-failure.png'),fullPage:true});}catch{}throw error;}
+ finally{
+  let cleanupError;
+  try{await browser?.close();}catch(error){cleanupError=error;}
+  try{rmSync(artifacts,{recursive:true,force:true});}catch(error){cleanupError||=error;}
+  if(!failure&&cleanupError)throw cleanupError;
+ }
 })().catch(e=>{console.error(e);process.exitCode=1;});

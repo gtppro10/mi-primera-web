@@ -1,18 +1,25 @@
 const {chromium} = require('playwright');
 const assert = require('node:assert/strict');
 const {execFileSync} = require('node:child_process');
-const {writeFileSync} = require('node:fs');
+const {chmodSync, mkdtempSync, rmSync, writeFileSync} = require('node:fs');
+const {tmpdir} = require('node:os');
+const {join} = require('node:path');
 
 const pdfInfo = path => execFileSync('pdfinfo', [path], {encoding: 'utf8'});
 const pdfText = path => execFileSync('pdftotext', ['-layout', path, '-'], {encoding: 'utf8'});
 
 (async () => {
-  const browser = await chromium.launch({executablePath: process.env.CHROMIUM_PATH || chromium.executablePath(), args: ['--no-sandbox']});
-  const page = await browser.newPage({viewport: {width: 390, height: 844}});
-  const base = process.env.DEMO_URL || 'http://127.0.0.1:8000/';
-  const errors = [];
-  page.on('pageerror', error => errors.push(error.message));
+  // Cada ejecución tiene su propio directorio privado, creado atómicamente.
+  // Ningún PDF se escribe en una ruta compartida ni sigue un archivo previo.
+  const temporaryDirectory = mkdtempSync(join(tmpdir(), 'skybike-quote-pdf-'));
+  let browser;
   try {
+    chmodSync(temporaryDirectory, 0o700);
+    browser = await chromium.launch({executablePath: process.env.CHROMIUM_PATH || chromium.executablePath(), args: ['--no-sandbox']});
+    const page = await browser.newPage({viewport: {width: 390, height: 844}});
+    const base = process.env.DEMO_URL || 'http://127.0.0.1:8000/';
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
     // Página del mismo origen sin arrancar el resto de la aplicación: esta
     // suite prueba el archivo PDF real y sus recursos locales de forma aislada.
     await page.route('**/__pdf-test__.html', route => route.fulfill({contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><title>Prueba PDF Skybike</title>'}));
@@ -75,13 +82,14 @@ const pdfText = path => execFileSync('pdftotext', ['-layout', path, '-'], {encod
       assert.equal(result.fileSize, result.blobSize);
       assert.ok(result.fileSize > 1000);
       assert.ok(result.unchanged, 'La generación no modifica los datos guardados.');
-      writeFileSync(path, bytes);
+      writeFileSync(path, bytes, {flag: 'wx', mode: 0o600});
       const info = pdfInfo(path);
       assert.match(info, /Page size:\s+595\.\d+ x 841\.\d+ pts \(A4\)/);
       return {...result, text: pdfText(path), info};
     };
 
-    const full = await generate('with', '/tmp/skybike-binary-quote-flyers.pdf');
+    const fullPath = join(temporaryDirectory, 'quote-flyers.pdf');
+    const full = await generate('with', fullPath);
     assert.match(full.info, /Pages:\s+3\b/);
     assert.deepEqual(full.missing, []);
     const pages = full.text.split('\f').filter(part => part.trim());
@@ -94,23 +102,23 @@ const pdfText = path => execFileSync('pdftotext', ['-layout', path, '-'], {encod
     assert.ok(pages[2].includes('ANEXO DE COTIZACIÓN') && pages[2].includes('TOUR B - VERTICAL'));
     // Comprueba las dimensiones efectivas de cada imagen en el PDF: el ajuste
     // mantiene relaciones horizontal 2:1 y vertical 1:2 sin deformación.
-    const imageList = execFileSync('pdfimages', ['-list', '/tmp/skybike-binary-quote-flyers.pdf'], {encoding: 'utf8'});
+    const imageList = execFileSync('pdfimages', ['-list', fullPath], {encoding: 'utf8'});
     for (const [pageNumber, ratio] of [[2, 2], [3, 0.5]]) {
       const fields = imageList.split('\n').find(line => new RegExp(`^\\s*${pageNumber}\\s+\\d+\\s+image\\s`).test(line))?.trim().split(/\s+/);
       assert.ok(fields, `Imagen del flyer en página ${pageNumber}.`);
       assert.equal(Number(fields[3]) / Number(fields[4]), ratio);
       assert.ok(Math.abs(Number(fields[12]) - Number(fields[13])) <= 1, 'Resolución X/Y equivalente: no hay estiramiento.');
     }
-    const without = await generate('without', '/tmp/skybike-binary-quote-no-flyers.pdf');
+    const without = await generate('without', join(temporaryDirectory, 'quote-no-flyers.pdf'));
     assert.match(without.info, /Pages:\s+1\b/);
     assert.ok(!without.text.includes('ANEXO DE COTIZACIÓN'));
     assert.deepEqual(without.missing, []);
-    const missing = await generate('missing', '/tmp/skybike-binary-quote-missing-flyers.pdf');
+    const missing = await generate('missing', join(temporaryDirectory, 'quote-missing-flyers.pdf'));
     assert.deepEqual(missing.missing, ['TOUR A - HORIZONTAL', 'TOUR B - VERTICAL']);
     assert.match(missing.info, /Pages:\s+1\b/);
-    const usd = await generate('usd', '/tmp/skybike-binary-quote-usd.pdf');
+    const usd = await generate('usd', join(temporaryDirectory, 'quote-usd.pdf'));
     assert.ok(usd.text.includes('$85.00'), 'Los S/ 340 originales se convierten con el TC 4 guardado.');
-    const long = await generate('long', '/tmp/skybike-binary-quote-long.pdf');
+    const long = await generate('long', join(temporaryDirectory, 'quote-long.pdf'));
     assert.ok(Number(long.info.match(/Pages:\s+(\d+)/)[1]) > 3);
     for (let index = 0; index < 7; index++) for (const prefix of ['FIN-DESCRIPCION', 'FIN-INCLUYE', 'FIN-EXCLUYE']) assert.ok(long.text.includes(`${prefix}-${index}`), `${prefix}-${index}`);
     assert.ok(long.text.includes('FIN-CONDICIONES-LARGAS'));
@@ -122,5 +130,8 @@ const pdfText = path => execFileSync('pdftotext', ['-layout', path, '-'], {encod
     assert.match(rejected.message, /únicamente cotizaciones/);
     assert.deepEqual(errors, []);
     console.log('PASS PDF binario: archivo real A4, datos guardados, PEN/USD, descuentos, flyers ordenados sin deformación ni duplicados, sin flyers, imágenes inválidas y textos extensos.');
-  } finally { await browser.close(); }
+  } finally {
+    try { await browser?.close(); }
+    finally { rmSync(temporaryDirectory, {recursive: true, force: true}); }
+  }
 })().catch(error => { console.error(error); process.exitCode = 1; });

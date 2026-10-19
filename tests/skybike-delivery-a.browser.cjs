@@ -3,6 +3,8 @@
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
+const {join}=require('node:path');
+const {tmpdir}=require('node:os');
 const {execFileSync}=require('node:child_process');
 const {chooseWizardClient,goToWizardStep}=require('./wizard-helpers.cjs');
 const KEY='skybike-cusco-demo-v1';
@@ -12,15 +14,18 @@ const pdfInfo=buffer=>execFileSync('pdfinfo',['-'],{input:buffer,encoding:'utf8'
 const assertPDF=buffer=>{assert.equal(buffer.subarray(0,4).toString(),'%PDF');assert.ok(buffer.length>8000,'Se genera el PDF, no una URL o un marcador');assert.match(pdfInfo(buffer),/Page size:\s+[\d.]+ x [\d.]+ pts \(A4\)/);};
 
 (async()=>{
- const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||chromium.executablePath(),args:['--no-sandbox']});
- const context=await browser.newContext({viewport:{width:390,height:844}}),page=await context.newPage(),errors=[],external=[];
+ const artifacts=fs.mkdtempSync(join(tmpdir(),'skybike-delivery-a-'));
+ let browser,page,failure;
+ try{
+ fs.chmodSync(artifacts,0o700);
+ browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||chromium.executablePath(),args:['--no-sandbox']});
+ const context=await browser.newContext({viewport:{width:390,height:844}});page=await context.newPage();const errors=[],external=[];
  const base=process.env.DEMO_URL||'http://127.0.0.1:8007/';
  const visit=async route=>{await page.goto(base.replace(/#.*$/,'')+'#'+route);};
  page.on('pageerror',error=>errors.push(error.message));
  // El visor PDF de Chromium carga chrome:// y chrome-extension:// internos.
  // Las peticiones HTTP externas siguen prohibidas para esta demo.
  context.on('request',request=>{if(/^https?:/.test(request.url())&&new URL(request.url()).origin!==new URL(base).origin)external.push(request.url());});
- try{
   await visit('panel');await page.getByRole('heading',{name:'Menú principal',exact:true}).waitFor();
   // Categoría nueva y flyers ficticios: mismos datos locales que administra la app.
   await page.evaluate(async key=>{
@@ -83,7 +88,7 @@ const assertPDF=buffer=>{assert.equal(buffer.subarray(0,4).toString(),'%PDF');as
    for(const button of await success.getByRole('button').all())assert.ok(await button.evaluate(el=>el.getBoundingClientRect().height>=44),'Controles cómodos para tocar');
   }
   await page.setViewportSize({width:390,height:844});
-  await page.screenshot({path:'/tmp/skybike-entrega-a-confirmacion.png',fullPage:true});
+  await page.screenshot({path:join(artifacts,'skybike-entrega-a-confirmacion.png'),fullPage:true});
   await page.reload();await success.getByRole('heading',{name:'COTIZACIÓN GENERADA',exact:true}).waitFor();assert.ok((await success.innerText()).includes(quote.number));
 
   // El navegador sin compartir archivos recibe un PDF verdadero para adjuntar.
@@ -152,6 +157,11 @@ const assertPDF=buffer=>{assert.equal(buffer.subarray(0,4).toString(),'%PDF');as
   assert.equal(await page.getByRole('button',{name:/calendario/i}).count(),0);
   assert.deepEqual(errors,[]);assert.deepEqual(external,[]);
   console.log('PASS Entrega A: confirmación independiente, doble pulsación sin duplicado, edición con identidad, PDF real A4 abrir/descargar/compartir/cancelar, flyers opcionales, filtros sin Todos, correo opcional y persistente, pagos preservados y móvil/escritorio; sin integraciones.');
- }catch(error){await page.screenshot({path:'/tmp/skybike-entrega-a-failure.png',fullPage:true});throw error;}
- finally{await browser.close();}
+ }catch(error){failure=error;try{if(page&&!page.isClosed())await page.screenshot({path:join(artifacts,'skybike-entrega-a-failure.png'),fullPage:true});}catch{}throw error;}
+ finally{
+  let cleanupError;
+  try{await browser?.close();}catch(error){cleanupError=error;}
+  try{fs.rmSync(artifacts,{recursive:true,force:true});}catch(error){cleanupError||=error;}
+  if(!failure&&cleanupError)throw cleanupError;
+ }
 })().catch(error=>{console.error(error);process.exitCode=1;});

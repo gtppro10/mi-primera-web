@@ -1,8 +1,16 @@
 const {chromium}=require('playwright');const assert=require('node:assert/strict');const fs=require('node:fs');
 const {execFileSync}=require('node:child_process');
+const {join}=require('node:path');
+const {tmpdir}=require('node:os');
 const {goToWizardStep,chooseWizardClient}=require('./wizard-helpers.cjs');
 (async()=>{
- const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||chromium.executablePath(),args:['--no-sandbox']});
+ const outputDir=fs.mkdtempSync(join(tmpdir(),'skybike-admin-'));
+ let browser;
+ try{
+ fs.chmodSync(outputDir,0o700);
+ const includesPdf=join(outputDir,'skybike-admin-includes.pdf');
+ const mobileScreenshot=join(outputDir,'skybike-admin-mobile.png');
+ browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||chromium.executablePath(),args:['--no-sandbox']});
  const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];
  const base=process.env.DEMO_URL||'http://127.0.0.1:8000/';
  page.on('pageerror',e=>errors.push(e.message));page.on('requestfailed',r=>errors.push(r.url()));
@@ -18,7 +26,6 @@ const {goToWizardStep,chooseWizardClient}=require('./wizard-helpers.cjs');
   assert.ok(await content.locator('textarea').evaluateAll(fields=>fields.every(f=>f.rows>=3)));
  };
  const immutable=()=>page.evaluate(()=>{const s=JSON.parse(localStorage.getItem('skybike-cusco-demo-v1'));return JSON.stringify({quotes:s.quotes,reservations:s.reservations,receipts:s.receipts,payments:s.payments});});
- try{
  await page.goto(base+'#tours');await page.getByRole('heading',{name:'Administrar Tours',exact:true}).waitFor();
  const original=await immutable();
  await page.getByRole('button',{name:'Agregar tour'}).click();
@@ -128,8 +135,8 @@ const {goToWizardStep,chooseWizardClient}=require('./wizard-helpers.cjs');
  const quoteRow=page.getByRole('row').filter({hasText:'COT-DEMO-002'});
  await quoteRow.getByRole('button',{name:'Ver',exact:true}).click();
  await page.evaluate(()=>Promise.all([...document.querySelectorAll('#document-output img')].map(i=>i.decode())));
- await page.emulateMedia({media:'print'});await page.pdf({path:'/tmp/skybike-admin-includes.pdf',preferCSSPageSize:true,printBackground:true});
- const pdf=execFileSync('pdftotext',['-layout','/tmp/skybike-admin-includes.pdf','-'],{encoding:'utf8'});
+ await page.emulateMedia({media:'print'});await page.pdf({path:includesPdf,preferCSSPageSize:true,printBackground:true});
+ const pdf=execFileSync('pdftotext',['-layout',includesPdf,'-'],{encoding:'utf8'});
  for(const marker of ['HIST-DESCRIPCION-DEMO','INCLUIDO-LINEA-2','EXCLUIDO-LINEA-2'])assert.ok(pdf.includes(marker),`${marker} debe estar disponible en el PDF`);
  await page.emulateMedia({media:'screen'});await page.getByRole('button',{name:'Cerrar',exact:true}).click();
  await quoteRow.getByRole('button',{name:'Aprobar'}).click();
@@ -149,7 +156,7 @@ const {goToWizardStep,chooseWizardClient}=require('./wizard-helpers.cjs');
  }
  await page.goto(base+'#tours');await page.getByRole('button',{name:'Agregar tour'}).click();
  assert(await page.locator('dialog').evaluate(e=>e.scrollWidth<=e.clientWidth));
- await page.screenshot({path:'/tmp/skybike-admin-mobile.png',fullPage:true});await page.keyboard.press('Escape');
+ await page.screenshot({path:mobileScreenshot,fullPage:true});await page.keyboard.press('Escape');
  assert.deepEqual(errors,[]);
  // Error de cuota: mantener exactamente los registros previos.
  const before=await page.evaluate(()=>localStorage.getItem('skybike-cusco-demo-v1'));
@@ -160,5 +167,8 @@ const {goToWizardStep,chooseWizardClient}=require('./wizard-helpers.cjs');
  assert.match(await page.getByRole('alert').innerText(),/No hay espacio/);
  assert.equal(await page.evaluate(()=>localStorage.getItem('skybike-cusco-demo-v1')),before);
  console.log('PASS administración: solo Incluye/No incluye multilínea en tours, históricos preservados y disponibles en PDF; tours/servicios, medios, archivo reversible, persistencia, cuotas, documentos y móvil.');
- }finally{await browser.close();}
+ }finally{
+  try{if(browser)await browser.close();}
+  finally{fs.rmSync(outputDir,{recursive:true,force:true});}
+ }
 })().catch(e=>{console.error(e);process.exitCode=1;});
