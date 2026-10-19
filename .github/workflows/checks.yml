@@ -32,6 +32,8 @@ jobs:
       - run: npm test
       - run: npm run audit:security
       - run: npm run build
+      - name: Herramientas de validación PDF
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y poppler-utils
       - run: npx --no-install playwright install --with-deps chromium
       - name: Probar la versión publicable en la subruta de Pages
         shell: bash
