@@ -12,19 +12,19 @@ const paths={
 };
 export const mainModules=[
  ['FACTURACIÓN','Comprobantes de pago y recibos internos','documentos','receipt','Demo · no fiscal'],
- ['COTIZACIONES','Tours, precios y flyers para cotizar','catalogo','quote',''],
+ ['COTIZACIONES','Tours, precios y flyers para cotizar','cotizador','quote',''],
  ['RESERVAS','Fechas, horarios y pasajeros','reservas','calendar',''],
  ['PAGOS','Adelantos, pagos y saldos','pagos','wallet',''],
  ['TOURS','Catálogo y administración de tours','tours','mountain',''],
  ['SERVICIOS','Administrar servicios adicionales','servicios','tools',''],
  ['CLIENTES','Datos de clientes e historial de servicios','pasajeros','people',''],
  ['ADMINISTRACIÓN','Configuración, usuarios y datos de la agencia','administracion','settings','Pendiente'],
- ['REPORTES E HISTORIAL','Estadísticas y registros de la agencia','reportes','chart','']
+ ['REPORTES','Estadísticas y registros de la agencia','reportes','chart','']
 ];
 export function homeMenu(){return `<header class="home-welcome"><div><strong>SKYBIKE CUSCO</strong><p>Sistema de gestión de la agencia</p><h1 tabindex="-1">Menú principal</h1><p>¿Qué deseas hacer hoy?</p></div><img src="./images/skybike/logo-agencia.jpg" alt="Logotipo original Skybike Cusco" width="54" height="44"></header><nav class="main-menu-grid" aria-label="Menú principal">${mainModules.map(([title,description,route,icon,status])=>`<a class="module-card ${route==='administracion'?'module-pending':''}" href="#${route}"><span class="module-icon" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${paths[icon]}"></path></svg></span><strong>${title.charAt(0)+title.slice(1).toLowerCase()}</strong><span class="module-description">${description}</span>${status?`<span class="module-status">${status}</span>`:''}<span class="module-arrow" aria-hidden="true">↗</span></a>`).join('')}</nav><p class="home-note">Demostración local · Tus datos se guardan en este navegador.</p>`;}
 export function moduleLinks(route){
- const groups=[['catalogo','cotizaciones'],['tours'],['reportes','historial','resumen']];
- const labels={catalogo:'Catálogo para cotizar',cotizaciones:'Cotizaciones guardadas',tours:'Administrar tours',reportes:'Reportes',historial:'Historial',resumen:'Resumen de la agencia'};
+ const groups=[['catalogo','cotizaciones','cotizador'],['tours'],['reportes','historial','resumen']];
+ const labels={cotizador:'Nueva cotización',catalogo:'Catálogo para cotizar',cotizaciones:'Cotizaciones guardadas',tours:'Administrar tours',reportes:'Reportes',historial:'Historial',resumen:'Resumen de la agencia'};
  const group=groups.find(g=>g.includes(route));if(!group)return '';
  const links=route==='tours'?['catalogo']:group.filter(key=>key!==route);
  return `<div class="module-shortcuts" role="group" aria-label="Opciones del módulo">${links.map(key=>`<a href="#${key}">${labels[key]} →</a>`).join('')}</div>`;

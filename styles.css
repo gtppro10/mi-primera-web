@@ -1265,3 +1265,18 @@ h1:focus{outline:none}
 }
 .main-menu-grid .module-description{font-weight:400}
 @media(max-width:700px){.sidebar{flex-direction:row}}
+
+/* Fase 1: un paso visible, controles táctiles y borrador independiente. */
+:root{background:#f2f6ef}
+.wizard-progress{padding:18px;background:#e9f1e3;border-radius:14px;margin-bottom:16px}.wizard-progress p{font-size:13px;color:#365c20;font-weight:700;margin:0 0 8px}.wizard-progress progress{width:100%;height:12px;accent-color:#527b32}.wizard-progress h2{margin:12px 0 0;font-size:20px}
+.wizard-card{padding:20px;background:white;border:1px solid #dbe5d3;border-radius:15px;display:grid;gap:14px;margin-bottom:15px;min-width:0}.wizard-card h3{margin:0;font-size:17px}.wizard-card p{margin:0;line-height:1.5}
+.wizard-actions,.wizard-navigation{display:flex;flex-wrap:wrap;gap:12px}.wizard-actions button,.wizard-navigation button{min-height:48px;flex:1}.wizard-navigation{position:static;padding:12px 0;background:#f2f6ef}.wizard-error{margin-bottom:12px}
+.wizard-choice{display:flex;flex-wrap:wrap;gap:12px}.wizard-choice legend{font-weight:700;font-size:14px}.wizard-choice label{display:flex;align-items:center;gap:8px;min-height:48px;border:1px solid #c8d8bd;padding:10px 14px;border-radius:10px;flex:1}.wizard-choice input{width:auto;accent-color:#527b32}
+.wizard-time{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.wizard-selection{list-style:none;padding:0;margin:0;display:grid;gap:8px}.wizard-selection li{display:flex;justify-content:space-between;gap:12px;padding:10px;border-bottom:1px solid #e0e9d9;font-size:13px}
+.wizard-review-lines{padding-left:20px;display:grid;gap:14px}.wizard-review-lines li{overflow-wrap:anywhere}.wizard-text,#wizard-paste-preview pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}
+.service-line{padding:14px;background:#f6f9f3;margin-top:8px}.service-line legend{font-size:14px}.wizard-card .category-tabs{max-width:100%}
+@media(min-width:900px){#quote-wizard{max-width:1000px}.wizard-card{padding:24px}.wizard-navigation{max-width:1000px}}
+@media(max-width:700px){.wizard-card{padding:14px}.wizard-progress{padding:14px}.wizard-card .line-editor{grid-template-columns:1fr}.wizard-time input,.wizard-time select{padding:10px 8px}.wizard-card .quote-line-heading{align-items:flex-start}.wizard-card .quote-line-heading h3{font-size:16px}}
+@media(max-width:319px){nav.main-menu-grid{grid-template-columns:1fr}.sidebar .brand{font-size:18px}.sidebar .sky-brand{font-size:16px}.sidebar .sky-logo{width:40px}.navigation-toggle{min-width:78px}.home-welcome img{width:48px}.home-welcome strong{font-size:14px}}
+@media(max-width:700px){.category-tabs{flex-wrap:wrap;overflow:visible}}

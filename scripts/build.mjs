@@ -10,6 +10,6 @@ function copy(source, destination) {
   } else copyFileSync(source,destination);
 }
 rmSync('dist',{recursive:true,force:true});mkdirSync('dist');
-for(const file of ['index.html','styles.css','script.js','js','images']) copy(file,join('dist',file));
+for(const file of ['index.html','styles.css','styles','script.js','js','images']) copy(file,join('dist',file));
 writeFileSync('dist/.nojekyll','');
 console.log('Sitio estático preparado en dist/.');

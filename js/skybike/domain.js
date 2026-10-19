@@ -33,6 +33,7 @@ export function createQuote(state,draft) {
   if(!client)throw new Error('Selecciona un cliente.');
   if(draft.clientSnapshot&&!draft.clientSnapshot.name?.trim())throw new Error('Completa el nombre del cliente.');
   if(!draft.lines.some(l=>l.type==='Tour'))throw new Error('La cotización necesita al menos un tour.');
+  if(draft.language&&!['es','en'].includes(draft.language))throw new Error('Selecciona un idioma válido.');
   if(!['PEN','USD'].includes(draft.currency)||!Number.isFinite(Number(draft.exchangeRate))||Number(draft.exchangeRate)<=0)throw new Error('Revisa la moneda y el tipo de cambio.');
   for(const l of draft.lines){
     if(l.productId&&!state.products.some(p=>p.id===l.productId&&p.active&&!p.archivedAt))throw new Error('Un tour o servicio de la selección está inactivo o archivado. Revisa el catálogo.');
