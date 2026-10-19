@@ -96,3 +96,17 @@ servicios por tour y PDF con flyers exclusivos de cotizaciones. La generación
 usa Imprimir / Guardar como PDF del navegador. Solo datos ficticios.
 Las pruebas PDF requieren `pdfinfo` y `pdftotext` (paquete `poppler-utils`).
 Esta rama requiere revisión e incorporación manual; no autoriza publicación.
+
+## Etapa F: gestión de la agencia
+
+Reservas con edición y búsqueda, pasajeros por tour, pagos con control de
+duplicados/sobrepagos, historial filtrado y reportes. Consulta la
+[guía de etapa F](docs/SKYBIKE_ETAPA_F.md) para uso, reglas y límites de la demo.
+Los documentos A4 y el catálogo siguen disponibles; no hay conexión a Supabase,
+Google ni SUNAT. Esta rama requiere revisión e incorporación manual.
+
+## Inicio Mobile First
+
+El inicio ahora es un menú de nueve tarjetas, con dos columnas en celulares,
+regreso visible desde cada módulo y menú secundario plegable. Administración
+está identificada como pendiente. Consulta la [guía de navegación](docs/SKYBIKE_NAVEGACION_MOVIL.md).
