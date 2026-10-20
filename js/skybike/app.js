@@ -60,9 +60,10 @@ function render(){
  const quoteView=route==='cotizador'?'asistente':['catalogo','cotizaciones'].includes(route)?'inicio':null;
  if(quoteView)app.dataset.quoteView=quoteView;else delete app.dataset.quoteView;
  document.body.classList.toggle('quote-wizard-active',quoteView==='asistente');
+ const workspaceSection=document.querySelector('#workspace-section');if(workspaceSection)workspaceSection.textContent=titles[route];
  document.querySelectorAll('nav a').forEach(a=>{const active=a.hash===`#${route}`;a.classList.toggle('active',active);if(active)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
  let content='';
- if(route==='panel')content=homeMenu();
+ if(route==='panel')content=homeMenu(state);
  if(route==='administracion')content=pendingAdministration();
  if(route==='resumen'){
  const pending=state.reservations.reduce((s,r)=>s+balance(state,r.id).balance,0);

@@ -1,0 +1,52 @@
+/* Marco de la agencia. Los formularios, documentos y su impresión mantienen
+   sus estilos; ningún contenedor del asistente limita su barra sticky. */
+body{background:#f4f6f8}
+.sidebar{inset:12px auto 12px 12px;width:248px;padding:22px 12px 12px;border:1px solid #e7ebef;border-radius:18px;background:#fff;box-shadow:0 3px 16px #233b4d08;gap:0}
+.sidebar .brand{gap:10px;padding:0 8px 19px;border-bottom:1px solid #edf0f3;flex-shrink:0}
+.sidebar .sky-brand{font-size:21px;letter-spacing:.8px;color:#213e37}
+.sidebar .sky-brand small{font-size:8px;letter-spacing:1.7px;color:#7b9188}
+.sidebar .sky-logo{width:56px;height:45px;border:0;border-radius:0}
+.sidebar-caption{margin:18px 12px 10px;font-size:9px;letter-spacing:1.5px;color:#8c9b96;flex-shrink:0}
+#sidebar-navigation{display:flex;flex-direction:column;gap:4px;min-height:0;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#c9d8d0 transparent;padding:0 2px 6px}
+#sidebar-navigation a{gap:11px;min-height:44px;padding:10px 12px;border-radius:10px;color:#5d6a74;flex-shrink:0;white-space:normal}
+#sidebar-navigation a span{font-size:12px;font-weight:550;line-height:1.5;min-width:0}
+#sidebar-navigation a svg{width:19px;height:19px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
+#sidebar-navigation a:hover{background:#eff7f3;color:#087f58}
+#sidebar-navigation a.active{background:#09966b;color:#fff;box-shadow:0 3px 8px #09966b24}
+#sidebar-navigation .nav-section{margin:15px 12px 5px;color:#8b9992;font-size:9px;font-weight:700;letter-spacing:1.25px;line-height:1.4}
+.nav-pending{display:inline-block;margin-left:3px;color:#697e5f;font-size:9px;font-weight:650}
+.sidebar-bottom{margin-top:12px;padding:14px 10px 4px;border-top:1px solid #edf0f3;flex-shrink:0;font-size:11px;color:#3e5d50}
+.sidebar-bottom p{margin:7px 0 4px;font-size:10px}.sidebar-bottom small{font-size:9px}
+.workspace{margin-left:272px;min-width:0}
+.topbar{height:68px;margin:12px 12px 0 0;padding:0 24px;border:1px solid #e6ebef;border-radius:16px;background:#fff;box-shadow:0 2px 5px #253b4c06}
+.workspace-breadcrumb{display:flex;align-items:center;gap:14px;min-width:0;font-size:11px;color:#96a19c}
+.workspace-breadcrumb>span:first-child{font-size:10px;font-weight:750;letter-spacing:.7px;color:#5c7268}
+.topbar .workspace-breadcrumb strong{margin:0;font-size:13px;font-weight:650;color:#283d34;overflow-wrap:anywhere}
+.workspace-profile{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.workspace-mode{display:flex;align-items:center;padding:6px 10px;background:#ecf8f1;border:1px solid #d5eddf;border-radius:8px;color:#25835e;font-size:10px;font-weight:700}
+.workspace-mode .demo-dot{background:#10a676;width:6px;height:6px;margin-right:6px}
+.topbar .avatar{width:34px;height:34px;background:#09966b;color:white;font-size:11px}
+.workspace-profile-label{color:#34493f;font-size:12px;font-weight:650}.workspace-profile-label small{display:block;margin-top:3px;font-size:9px;font-weight:450;color:#82918a}
+.demo-banner{margin:14px 24px 0;padding:8px 12px;font-size:10px;background:#fffdfa;border-color:#eee7d6;color:#85754b}
+.workspace>main{max-width:1680px;padding:22px 24px 28px}
+.workspace>footer{border-color:#e5eae8;padding:20px 24px;color:#8d9b94}
+.quote-wizard-active .topbar,.quote-wizard-active .demo-banner{display:none}
+@media(min-width:701px) and (max-width:1100px){
+ .sidebar{width:200px;padding-inline:8px}.sidebar .brand{gap:7px;padding-inline:5px}.sidebar .sky-brand{font-size:17px}.sidebar .sky-logo{width:46px}
+ .workspace{margin-left:224px}.workspace>main{padding-inline:20px}.topbar{padding-inline:16px}.workspace-profile-label,.workspace-breadcrumb>span:first-child,.workspace-breadcrumb>span:nth-child(2){display:none}
+}
+@media(max-width:700px){
+ .sidebar{position:static;inset:auto;width:100%;padding:10px 14px;border:0;border-bottom:1px solid #e6eee9;border-radius:0;box-shadow:none;display:flex;flex-direction:row;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+ .sidebar .brand{border:0;padding:0;gap:8px;margin:0}.sidebar .sky-brand{font-size:19px}.sidebar .sky-logo{width:50px;height:40px}
+ .sidebar-caption,.sidebar-bottom{display:none}.sidebar .navigation-toggle{display:inline-flex;min-height:44px;min-width:88px;border-color:#d8e6dd;border-radius:10px;color:#32634d;font-size:12px;background:#fff}
+ #sidebar-navigation{display:none;width:100%;padding:0}
+ .sidebar.menu-open #sidebar-navigation{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;max-height:65vh;overflow-y:auto;overscroll-behavior:contain;padding-top:8px}
+ #sidebar-navigation .nav-section{grid-column:1/-1;margin:12px 10px 4px}
+ #sidebar-navigation a{gap:8px;padding:9px 10px;min-height:46px}#sidebar-navigation a span{font-size:11px}#sidebar-navigation a svg{width:17px;height:17px}
+ .workspace{margin-left:0}.topbar{display:none}.workspace>main{padding:18px 14px 24px}
+ .demo-banner{margin:12px 14px 0;padding:7px 10px;font-size:9px;line-height:1.5}
+ .workspace>footer{padding:18px 14px;font-size:9px}
+ .quote-wizard-active .sidebar{padding:8px 12px}.quote-wizard-active .sidebar .sky-logo{height:36px}
+}
+@media(max-width:319px){.sidebar .sky-brand{font-size:16px}.sidebar .sky-logo{width:39px}.sidebar .navigation-toggle{min-width:76px;padding-inline:9px}}
+@media print{body{background:white}.workspace>main{padding:0}.workspace>footer{display:none}}

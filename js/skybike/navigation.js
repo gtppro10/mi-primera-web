@@ -1,4 +1,5 @@
-// Navegación únicamente: no guarda datos ni cambia reglas de negocio.
+// Navegación y resumen de solo lectura: no guarda datos ni cambia reglas de negocio.
+import {balance} from './domain.js';
 const paths={
  receipt:'M7 3h18v26l-4-3-5 3-5-3-4 3V3Zm5 7h8m-8 5h8m-8 5h5',
  quote:'M6 6h20v22H6V6Zm5-3h10v6H11V3Zm0 12h10m-10 5h10',
@@ -21,7 +22,25 @@ export const mainModules=[
  ['ADMINISTRACIÓN','Configuración, usuarios y datos de la agencia','administracion','settings','Pendiente'],
  ['REPORTES','Estadísticas y registros de la agencia','reportes','chart','']
 ];
-export function homeMenu(){return `<header class="home-welcome"><div><strong>SKYBIKE CUSCO</strong><p>Sistema de gestión de la agencia</p><h1 tabindex="-1">Menú principal</h1><p>¿Qué deseas hacer hoy?</p></div><img src="./images/skybike/logo-agencia.jpg" alt="Logotipo original Skybike Cusco" width="54" height="44"></header><nav class="main-menu-grid" aria-label="Menú principal">${mainModules.map(([title,description,route,icon,status])=>`<a class="module-card ${route==='administracion'?'module-pending':''}" href="#${route}"><span class="module-icon" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${paths[icon]}"></path></svg></span><strong>${title.charAt(0)+title.slice(1).toLowerCase()}</strong><span class="module-description">${description}</span>${status?`<span class="module-status">${status}</span>`:''}<span class="module-arrow" aria-hidden="true">↗</span></a>`).join('')}</nav><p class="home-note">Demostración local · Tus datos se guardan en este navegador.</p>`;}
+const moduleTones=['green','blue','orange','violet','teal','rose','indigo','slate','amber'];
+const iconSVG=icon=>`<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${paths[icon]}"></path></svg>`;
+export function homeMenu(state={}){
+ const reservations=Array.isArray(state.reservations)?state.reservations:[];
+ const payments=Array.isArray(state.payments)?state.payments:[];
+ const quotes=Array.isArray(state.quotes)?state.quotes:[];
+ const financialState={reservations,payments};
+ const income=payments.reduce((total,payment)=>total+Number(payment.amount),0);
+ const active=reservations.filter(reservation=>['PENDIENTE','CONFIRMADA'].includes(reservation.status)).length;
+ const pending=reservations.filter(reservation=>reservation.status!=='CANCELADA').reduce((total,reservation)=>total+balance(financialState,reservation.id).balance,0);
+ const money=cents=>new Intl.NumberFormat('es-PE',{style:'currency',currency:'PEN'}).format(cents/100);
+ const metrics=[
+  ['income','Ingresos registrados',income,money(income),'Pagos registrados en esta demo','green','wallet'],
+  ['active-reservations','Reservas activas',active,String(active),'Pendientes y confirmadas','blue','calendar'],
+  ['quotes','Cotizaciones',quotes.length,String(quotes.length),'Cotizaciones guardadas','orange','quote'],
+  ['pending-balance','Saldo pendiente',pending,money(pending),'Reservas no canceladas','violet','receipt']
+ ];
+ return `<section class="dashboard-home" aria-label="Panel de la agencia"><header class="home-welcome"><div class="home-welcome-copy"><strong>SKYBIKE CUSCO</strong><h1 tabindex="-1">Menú principal</h1><p>Organiza cada experiencia desde un solo lugar.</p></div><div class="home-welcome-brand"><img src="./images/skybike/logo-agencia.jpg" alt="Logotipo original Skybike Cusco" width="80" height="64"><span>Gestión de la agencia</span></div></header><section class="dashboard-kpis" aria-label="Resumen de datos de demostración">${metrics.map(([key,label,value,formatted,description,tone,icon])=>`<article class="dashboard-kpi dashboard-kpi--${tone}" data-kpi="${key}" data-value="${value}"><div class="dashboard-kpi-heading"><h2>${label}</h2><span class="dashboard-kpi-icon" aria-hidden="true">${iconSVG(icon)}</span></div><strong class="dashboard-kpi-value">${formatted}</strong><p>${description}</p></article>`).join('')}</section><div class="dashboard-section-heading"><div><h2>Accesos rápidos</h2><p>Elige un módulo para continuar.</p></div><span class="dashboard-local-label"><span aria-hidden="true"></span>Demo local</span></div><nav class="main-menu-grid" aria-label="Menú principal">${mainModules.map(([title,description,route,icon,status],index)=>`<a class="module-card module-tone-${moduleTones[index]} ${route==='administracion'?'module-pending':''}" href="#${route}"><span class="module-icon" aria-hidden="true">${iconSVG(icon)}</span><strong>${title.charAt(0)+title.slice(1).toLowerCase()}</strong><span class="module-description">${description}</span>${status?`<span class="module-status">${status}</span>`:''}<span class="module-arrow" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h12m-5-5 5 5-5 5"></path></svg></span></a>`).join('')}</nav><p class="home-note">Datos de demostración · Se guardan únicamente en este navegador.</p></section>`;
+}
 export function moduleLinks(route){
  const groups=[['catalogo','cotizaciones','cotizador'],['tours'],['reportes','historial','resumen']];
  const labels={cotizador:'Nueva cotización',catalogo:'Catálogo para cotizar',cotizaciones:'Cotizaciones guardadas',tours:'Administrar tours',reportes:'Reportes',historial:'Historial',resumen:'Resumen de la agencia'};

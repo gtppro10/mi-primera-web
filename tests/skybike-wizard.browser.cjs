@@ -71,7 +71,7 @@ const KEY='skybike-cusco-demo-v1';
   assert.equal(await page.locator('.module-card').count(),9);
   for(const width of [280,320,375,390,430,768,1440]){
    await page.setViewportSize({width,height:844});await noOverflow(`inicio ${width}px`);
-   assert.equal(await page.locator('.main-menu-grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length),width<320?1:width<=700?2:3);
+   assert.equal(await page.locator('.main-menu-grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length),width<320?1:width<=700?2:width<1280?3:4);
   }
   await page.setViewportSize({width:390,height:844});
   // Una cotización nueva no debe consumir ni reiniciar un comprobante pendiente.

@@ -64,6 +64,11 @@ el repositorio. No se accedió a hojas, pagos, archivos o reservas reales.
 
 ## Pruebas de desarrollo
 
+El panel principal muestra cuatro indicadores calculados con los datos guardados
+de la demo y nueve accesos rápidos. El menú lateral agrupa las operaciones y tiene
+desplazamiento propio en computadoras. Las tarjetas se adaptan a dos columnas en
+celulares y hasta cuatro en pantallas grandes; Administración sigue pendiente.
+
 Al entrar en Nueva cotización se abre directamente la etapa guardada del
 asistente. Su barra superior mantiene Anterior, Siguiente y Volver al inicio
 visibles al desplazarse; el catálogo y las cotizaciones guardadas conservan sus
