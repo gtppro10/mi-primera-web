@@ -1,13 +1,31 @@
 const {chromium}=require('playwright');const assert=require('node:assert/strict');const fs=require('node:fs');
+const {execFileSync}=require('node:child_process');
+const {join}=require('node:path');
+const {tmpdir}=require('node:os');
 const {goToWizardStep,chooseWizardClient}=require('./wizard-helpers.cjs');
 (async()=>{
- const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||chromium.executablePath(),args:['--no-sandbox']});
+ const outputDir=fs.mkdtempSync(join(tmpdir(),'skybike-admin-'));
+ let browser;
+ try{
+ fs.chmodSync(outputDir,0o700);
+ const includesPdf=join(outputDir,'skybike-admin-includes.pdf');
+ const mobileScreenshot=join(outputDir,'skybike-admin-mobile.png');
+ browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||chromium.executablePath(),args:['--no-sandbox']});
  const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];
  const base=process.env.DEMO_URL||'http://127.0.0.1:8000/';
  page.on('pageerror',e=>errors.push(e.message));page.on('requestfailed',r=>errors.push(r.url()));
  const jpg={name:'fotografia-demo.jpg',mimeType:'image/jpeg',buffer:fs.readFileSync('images/skybike/aventura.jpg')};
+ const historicalContent={shortDescription:'Resumen histórico ficticio.',description:'HIST-DESCRIPCION-DEMO: descripción completa del tour ficticio.',itinerary:'Encuentro, actividad y retorno.',recommendations:'Agua y bloqueador',observations:'Solo demostración histórica'};
+ const included='Equipo y guía demo\nINCLUIDO-LINEA-2: traslado ficticio';
+ const excluded='Transporte\nEXCLUIDO-LINEA-2: gastos personales demo';
+ const assertTourContent=async()=>{
+  const content=page.locator('#product-form details').filter({has:page.locator('summary').filter({hasText:'2. Contenido de la experiencia'})});
+  assert.deepEqual(await content.locator('textarea').evaluateAll(fields=>fields.map(f=>f.name)),['includes','excludes']);
+  assert.equal(await content.locator('input, select').count(),0);
+  for(const name of Object.keys(historicalContent))assert.equal(await page.locator(`#product-form [name="${name}"]`).count(),0,`${name} debe conservarse sin exponerse en el formulario`);
+  assert.ok(await content.locator('textarea').evaluateAll(fields=>fields.every(f=>f.rows>=3)));
+ };
  const immutable=()=>page.evaluate(()=>{const s=JSON.parse(localStorage.getItem('skybike-cusco-demo-v1'));return JSON.stringify({quotes:s.quotes,reservations:s.reservations,receipts:s.receipts,payments:s.payments});});
- try{
  await page.goto(base+'#tours');await page.getByRole('heading',{name:'Administrar Tours',exact:true}).waitFor();
  const original=await immutable();
  await page.getByRole('button',{name:'Agregar tour'}).click();
@@ -18,13 +36,9 @@ const {goToWizardStep,chooseWizardClient}=require('./wizard-helpers.cjs');
  await page.getByLabel('Precio referencial USD').fill('45');
  await page.getByLabel('Duración',{exact:true}).fill('3 horas');
  await page.getByLabel('Horarios disponibles').fill('09:00, 14:30');
- await page.getByLabel('Descripción breve').fill('Una experiencia de prueba visual.');
- await page.getByLabel('Descripción completa').fill('Descripción completa del tour ficticio.');
- await page.getByLabel('Itinerario').fill('Encuentro, actividad y retorno.');
- await page.getByLabel('Servicios incluidos').fill('Equipo y guía demo');
- await page.getByLabel('Servicios no incluidos').fill('Transporte');
- await page.getByLabel('Recomendaciones').fill('Agua y bloqueador');
- await page.getByLabel('Observaciones').fill('Solo demostración');
+ await assertTourContent();
+ await page.getByLabel('SERVICIOS INCLUIDOS',{exact:true}).fill(included);
+ await page.getByLabel('SERVICIOS NO INCLUIDOS',{exact:true}).fill(excluded);
  await page.locator('#admin-cover').setInputFiles({name:'falsa.png',mimeType:'image/png',buffer:Buffer.from('<svg>contenido falso</svg>')});
  await page.getByRole('alert').filter({hasText:'no corresponde'}).waitFor();
  await page.locator('#admin-cover').setInputFiles(jpg);
@@ -43,10 +57,16 @@ const {goToWizardStep,chooseWizardClient}=require('./wizard-helpers.cjs');
  await page.getByRole('button',{name:'Guardar tour',exact:true}).click();
  const row=page.getByRole('row').filter({hasText:'TOUR-AB'});
  await row.waitFor();assert.match(await row.innerText(),/160[.,]00/);
+ // Fixture histórica explícita: simula un tour creado antes de ocultar estos campos.
+ await page.evaluate(content=>{const key='skybike-cusco-demo-v1',state=JSON.parse(localStorage.getItem(key));Object.assign(state.products.find(p=>p.code==='TOUR-AB'),content);localStorage.setItem(key,JSON.stringify(state));},historicalContent);
  await page.reload();
  await row.getByRole('button',{name:'Editar',exact:true}).click();
  assert.equal(await page.getByLabel('Precio referencial USD').inputValue(),'45');
- assert.equal(await page.getByLabel('Itinerario').inputValue(),'Encuentro, actividad y retorno.');
+ await assertTourContent();
+ assert.equal(await page.getByLabel('SERVICIOS INCLUIDOS',{exact:true}).inputValue(),included);
+ assert.equal(await page.getByLabel('SERVICIOS NO INCLUIDOS',{exact:true}).inputValue(),excluded);
+ const updatedIncluded=included+'\nSeguro ficticio';
+ await page.getByLabel('SERVICIOS INCLUIDOS',{exact:true}).fill(updatedIncluded);
  assert.equal(await page.locator('#gallery-preview img').count(),2);
  await page.locator('summary').filter({hasText:'4. Flyers oficiales'}).click();
  assert.equal(await page.locator('#flyers-preview img').count(),2);
@@ -55,6 +75,13 @@ const {goToWizardStep,chooseWizardClient}=require('./wizard-helpers.cjs');
  await page.getByRole('button',{name:'Quitar de galería',exact:true}).first().click();
  await page.getByRole('button',{name:'Guardar tour',exact:true}).click();
  assert.match(await row.innerText(),/175[.,]00/);
+ const savedTour=await page.evaluate(()=>JSON.parse(localStorage.getItem('skybike-cusco-demo-v1')).products.find(p=>p.code==='TOUR-AB'));
+ for(const [key,value] of Object.entries(historicalContent))assert.equal(savedTour[key],value,`No borrar ${key} histórico al guardar`);
+ assert.equal(savedTour.includes,updatedIncluded);assert.equal(savedTour.excludes,excluded);
+ await page.reload();await row.getByRole('button',{name:'Editar',exact:true}).click();await assertTourContent();
+ assert.equal(await page.getByLabel('SERVICIOS INCLUIDOS',{exact:true}).inputValue(),updatedIncluded);
+ assert.equal(await page.getByLabel('SERVICIOS NO INCLUIDOS',{exact:true}).inputValue(),excluded);
+ await page.getByRole('button',{name:'Cerrar',exact:true}).click();
  await row.getByRole('button',{name:'Desactivar',exact:true}).click();
  await page.getByRole('button',{name:'Confirmar',exact:true}).click();
  await page.getByRole('link',{name:'Catálogo de tours'}).click();
@@ -103,8 +130,15 @@ const {goToWizardStep,chooseWizardClient}=require('./wizard-helpers.cjs');
  assert.match(await page.locator('#quote-total').innerText(),/235[.,]00/);
  await goToWizardStep(page,6);
  await page.getByRole('button',{name:'Guardar cotización demo'}).click();
- await page.getByRole('heading',{name:'Cotizaciones',exact:true}).waitFor();
+ await page.waitForFunction(()=>JSON.parse(localStorage.getItem('skybike-cusco-demo-v1')).quotes.length===2);
+ await page.goto(base+'#cotizaciones');await page.getByRole('heading',{name:'Cotizaciones',exact:true}).waitFor();
  const quoteRow=page.getByRole('row').filter({hasText:'COT-DEMO-002'});
+ await quoteRow.getByRole('button',{name:'Ver',exact:true}).click();
+ await page.evaluate(()=>Promise.all([...document.querySelectorAll('#document-output img')].map(i=>i.decode())));
+ await page.emulateMedia({media:'print'});await page.pdf({path:includesPdf,preferCSSPageSize:true,printBackground:true});
+ const pdf=execFileSync('pdftotext',['-layout',includesPdf,'-'],{encoding:'utf8'});
+ for(const marker of ['HIST-DESCRIPCION-DEMO','INCLUIDO-LINEA-2','EXCLUIDO-LINEA-2'])assert.ok(pdf.includes(marker),`${marker} debe estar disponible en el PDF`);
+ await page.emulateMedia({media:'screen'});await page.getByRole('button',{name:'Cerrar',exact:true}).click();
  await quoteRow.getByRole('button',{name:'Aprobar'}).click();
  await quoteRow.getByRole('button',{name:'Crear reserva'}).click();
  await page.getByRole('heading',{name:'Reservas',exact:true}).waitFor();
@@ -122,7 +156,7 @@ const {goToWizardStep,chooseWizardClient}=require('./wizard-helpers.cjs');
  }
  await page.goto(base+'#tours');await page.getByRole('button',{name:'Agregar tour'}).click();
  assert(await page.locator('dialog').evaluate(e=>e.scrollWidth<=e.clientWidth));
- await page.screenshot({path:'/tmp/skybike-admin-mobile.png',fullPage:true});await page.keyboard.press('Escape');
+ await page.screenshot({path:mobileScreenshot,fullPage:true});await page.keyboard.press('Escape');
  assert.deepEqual(errors,[]);
  // Error de cuota: mantener exactamente los registros previos.
  const before=await page.evaluate(()=>localStorage.getItem('skybike-cusco-demo-v1'));
@@ -132,6 +166,9 @@ const {goToWizardStep,chooseWizardClient}=require('./wizard-helpers.cjs');
  await page.getByRole('button',{name:'Guardar tour',exact:true}).click();
  assert.match(await page.getByRole('alert').innerText(),/No hay espacio/);
  assert.equal(await page.evaluate(()=>localStorage.getItem('skybike-cusco-demo-v1')),before);
- console.log('PASS A/B: tours y servicios alta/edición, fotos/galería/flyers ES/EN, archivo reversible, confirmaciones, persistencia, catálogo por imagen, cuotas y conservación de documentos; móvil.');
- }finally{await browser.close();}
+ console.log('PASS administración: solo Incluye/No incluye multilínea en tours, históricos preservados y disponibles en PDF; tours/servicios, medios, archivo reversible, persistencia, cuotas, documentos y móvil.');
+ }finally{
+  try{if(browser)await browser.close();}
+  finally{fs.rmSync(outputDir,{recursive:true,force:true});}
+ }
 })().catch(e=>{console.error(e);process.exitCode=1;});

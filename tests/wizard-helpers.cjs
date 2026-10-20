@@ -26,4 +26,13 @@ async function chooseWizardClient(page,label='Lucía Demo'){
  await page.locator('#quote-wizard [name="customerPhone"]').fill('900000000');
 }
 
-module.exports={wizardStep,goToWizardStep,chooseWizardClient};
+async function saveWizardToList(page){
+ await page.getByRole('button',{name:'Guardar cotización demo',exact:true}).click();
+ await page.waitForFunction(()=>location.hash==='#cotizacion-generada');
+ await page.locator('#quote-success').getByRole('heading',{name:'COTIZACIÓN GENERADA',exact:true}).waitFor();
+ assert.equal(await page.locator('#wizard-step, .wizard-progress').count(),0,'La confirmación es una pantalla independiente del asistente');
+ await page.goto(page.url().replace(/#.*$/,'')+'#cotizaciones');
+ await page.getByRole('heading',{name:'Cotizaciones',exact:true}).waitFor();
+}
+
+module.exports={wizardStep,goToWizardStep,chooseWizardClient,saveWizardToList};

@@ -117,3 +117,13 @@ Cotizaciones ahora utiliza un asistente de seis pasos con borrador independiente
 catálogo compacto y equivalencias PEN/USD. La preferencia ES/EN se guarda; la
 traducción integral del PDF y el envío WhatsApp pertenecen a la fase 2. Consulta
 [la guía de fase 1](docs/SKYBIKE_FASE_1.md) para funciones, pruebas y pendientes.
+
+## Entrega A: confirmación y PDF como archivo
+
+Después de guardar una cotización se puede abrir/compartir un PDF real o editar
+conservando el mismo número. Tours conserva su contenido histórico oculto;
+Facturación permite correo de cliente validado. Ejecuta `npm ci --ignore-scripts`
+y `npm run build` para preparar las bibliotecas PDF locales antes de servir la web.
+Consulta la [guía de Entrega A](docs/SKYBIKE_ENTREGA_A.md) y la
+[propuesta de Entrega B](docs/SKYBIKE_ENTREGA_B_PROPUESTA.md). El login real y
+Google Calendar no están activados; no hay una protección de acceso simulada.

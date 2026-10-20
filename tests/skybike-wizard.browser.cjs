@@ -1,10 +1,17 @@
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
+const {mkdtempSync,chmodSync,rmSync}=require('node:fs');
+const {join}=require('node:path');
+const {tmpdir}=require('node:os');
 const KEY='skybike-cusco-demo-v1';
 
 (async()=>{
- const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||chromium.executablePath(),args:['--no-sandbox']});
- const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];
+ const artifacts=mkdtempSync(join(tmpdir(),'skybike-wizard-'));
+ let browser,page,failure;
+ try{
+ chmodSync(artifacts,0o700);
+ browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||chromium.executablePath(),args:['--no-sandbox']});
+ page=await browser.newPage({viewport:{width:390,height:844}});const errors=[];
  page.on('pageerror',error=>errors.push(error.message));
  const base=process.env.DEMO_URL||'http://127.0.0.1:8005/';
  const state=()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
@@ -27,7 +34,6 @@ const KEY='skybike-cusco-demo-v1';
   }
   await page.setViewportSize({width:390,height:844});
  }
- try{
   await page.goto(base);await page.getByRole('heading',{name:'Menú principal',exact:true}).waitFor();
   assert.equal(await page.locator('.module-card').count(),9);
   for(const width of [280,320,375,390,430,768,1440]){
@@ -116,8 +122,10 @@ const KEY='skybike-cusco-demo-v1';
   await sizes('revisión');assert.equal(await page.locator('#wizard-next').isDisabled(),true);
   const finalText=await page.locator('#quote-wizard').innerText();for(const text of ['Cliente Wizard DEMO','900000001','DEMO-WIZARD-001','USD','Inglés (EN)','3.8','20/11/2026','21/11/2026','09:15','12:45','167.11','14 días','Observación ficticia wizard.'])assert.ok(finalText.includes(text),text);
   assert.equal(await page.locator('#quote-wizard').getByRole('button',{name:/calendario|WhatsApp|PDF/i}).count(),0);
-  await page.screenshot({path:'/tmp/skybike-wizard-mobile.png',fullPage:true});await page.setViewportSize({width:1440,height:1000});await page.screenshot({path:'/tmp/skybike-wizard-desktop.png',fullPage:true});
-  await page.getByRole('button',{name:'Guardar cotización demo',exact:true}).click();await page.waitForFunction(()=>location.hash==='#cotizaciones');
+  await page.screenshot({path:join(artifacts,'skybike-wizard-mobile.png'),fullPage:true});await page.setViewportSize({width:1440,height:1000});await page.screenshot({path:join(artifacts,'skybike-wizard-desktop.png'),fullPage:true});
+  await page.getByRole('button',{name:'Guardar cotización demo',exact:true}).click();await page.waitForFunction(()=>location.hash==='#cotizacion-generada');
+  await page.locator('#quote-success').getByRole('heading',{name:'COTIZACIÓN GENERADA',exact:true}).waitFor();
+  assert.equal(await page.locator('#wizard-step,.wizard-progress').count(),0);
   const after=await state(),quote=after.quotes.at(-1);
   assert.equal(after.quotes.length,before.quotes.length+1);assert.equal(quote.client.name,'Cliente Wizard DEMO');assert.equal(quote.currency,'USD');assert.equal(quote.exchangeRate,3.8);assert.equal(quote.language,'en');assert.equal(quote.totals.total,63500);assert.equal(quote.status,'Pendiente');assert.equal(quote.validity,14);
   for(const key of ['reservations','receipts','payments','passengers'])assert.deepEqual(after[key],before[key],key);
@@ -125,6 +133,11 @@ const KEY='skybike-cusco-demo-v1';
   assert.equal((await state()).quoteDraft.lines.length,0);
   assert.deepEqual(errors,[]);
   console.log('PASS wizard: seis pasos, validaciones, WhatsApp revisado, PEN/USD sin mutación, ES/EN, tours/servicios separados, descuentos, duplicados, reload y siete tamaños; guardar no crea reservas ni pagos.');
- }catch(error){await page.screenshot({path:'/tmp/skybike-wizard-failure.png',fullPage:true});throw error;}
- finally{await browser.close();}
+ }catch(error){failure=error;try{if(page&&!page.isClosed())await page.screenshot({path:join(artifacts,'skybike-wizard-failure.png'),fullPage:true});}catch{}throw error;}
+ finally{
+  let cleanupError;
+  try{await browser?.close();}catch(error){cleanupError=error;}
+  try{rmSync(artifacts,{recursive:true,force:true});}catch(error){cleanupError||=error;}
+  if(!failure&&cleanupError)throw cleanupError;
+ }
 })().catch(error=>{console.error(error);process.exitCode=1;});

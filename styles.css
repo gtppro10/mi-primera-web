@@ -1280,3 +1280,13 @@ h1:focus{outline:none}
 @media(max-width:700px){.wizard-card{padding:14px}.wizard-progress{padding:14px}.wizard-card .line-editor{grid-template-columns:1fr}.wizard-time input,.wizard-time select{padding:10px 8px}.wizard-card .quote-line-heading{align-items:flex-start}.wizard-card .quote-line-heading h3{font-size:16px}}
 @media(max-width:319px){nav.main-menu-grid{grid-template-columns:1fr}.sidebar .brand{font-size:18px}.sidebar .sky-brand{font-size:16px}.sidebar .sky-logo{width:40px}.navigation-toggle{min-width:78px}.home-welcome img{width:48px}.home-welcome strong{font-size:14px}}
 @media(max-width:700px){.category-tabs{flex-wrap:wrap;overflow:visible}}
+
+/* Entrega A: confirmación independiente de los seis pasos. */
+.quote-success{max-width:530px;margin:24px auto;background:white;border:1px solid #dce6d5;border-radius:22px;padding:30px;text-align:center;box-shadow:0 8px 30px #3457220d}
+.quote-success-icon{color:#527b32;width:76px;height:76px;margin:0 auto 18px}.quote-success-icon svg{width:100%;height:100%}
+.quote-success h1{font-size:clamp(21px,4vw,27px);color:#365c20;line-height:1.3;margin:0 0 12px}
+.quote-success-number{color:#527b32;font-size:21px;font-weight:700;margin:0 0 14px}.quote-success p{line-height:1.6;overflow-wrap:anywhere}
+.quote-success-actions{display:grid;gap:12px;margin:22px 0}.quote-success-actions button,.quote-success-actions a{min-height:50px;width:100%;padding:13px;font-size:13px;border-radius:11px;text-decoration:none;display:flex;align-items:center;justify-content:center}
+.quote-success-actions>button:first-child{background:#365c20}.secondary-button{background:#f3f7ef;border:1px solid #c6d6ba;color:#365c20;font-weight:700}
+.quote-success .success-flyers{justify-content:center;font-size:13px;margin-top:20px}.quote-success #quote-file-status{font-size:13px;color:#365c20}
+@media(max-width:700px){.quote-success{padding:22px 16px;margin:8px auto;max-width:100%}.quote-success-icon{width:66px;height:66px}}
