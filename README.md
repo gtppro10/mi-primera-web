@@ -64,6 +64,12 @@ el repositorio. No se accedió a hojas, pagos, archivos o reservas reales.
 
 ## Pruebas de desarrollo
 
+Al entrar en Nueva cotización se abre directamente la etapa guardada del
+asistente. Su barra superior mantiene Anterior, Siguiente y Volver al inicio
+visibles al desplazarse; el catálogo y las cotizaciones guardadas conservan sus
+propias pantallas de entrada. Los errores de validación aparecen bajo la barra,
+sin avanzar de etapa ni borrar el borrador.
+
 Con Node.js 24:
 
 ```bash

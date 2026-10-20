@@ -1268,16 +1268,25 @@ h1:focus{outline:none}
 
 /* Fase 1: un paso visible, controles táctiles y borrador independiente. */
 :root{background:#f2f6ef}
-.wizard-progress{padding:18px;background:#e9f1e3;border-radius:14px;margin-bottom:16px}.wizard-progress p{font-size:13px;color:#365c20;font-weight:700;margin:0 0 8px}.wizard-progress progress{width:100%;height:12px;accent-color:#527b32}.wizard-progress h2{margin:12px 0 0;font-size:20px}
+.quote-wizard-active .topbar,.quote-wizard-active .demo-banner{display:none}
+#app[data-quote-view="asistente"]{padding-top:8px}
+.wizard-toolbar{position:sticky;top:0;z-index:3;background:#f2f6ef;border-bottom:1px solid #c8d8bd;padding:8px 0 10px;margin-bottom:12px}
+.wizard-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.wizard-progress{min-width:0}.wizard-meta{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:11px;color:#5a6e50}
+.wizard-meta p{font-size:12px;color:#365c20;font-weight:700;margin:0;line-height:1.4}
+.wizard-progress h1{margin:3px 0 0;font-size:18px;line-height:1.25;letter-spacing:0;color:#29461e;overflow-wrap:anywhere}
+.wizard-heading .back-home{min-height:44px;padding:8px 10px;margin:0;flex-shrink:0;font-size:12px}
+.wizard-toolbar progress{display:block;width:100%;height:4px;margin-top:8px;accent-color:#527b32}
+.wizard-step-content{min-width:0}.wizard-step-content :is(input,select,textarea,button){scroll-margin-top:160px}
 .wizard-card{padding:20px;background:white;border:1px solid #dbe5d3;border-radius:15px;display:grid;gap:14px;margin-bottom:15px;min-width:0}.wizard-card h3{margin:0;font-size:17px}.wizard-card p{margin:0;line-height:1.5}
-.wizard-actions,.wizard-navigation{display:flex;flex-wrap:wrap;gap:12px}.wizard-actions button,.wizard-navigation button{min-height:48px;flex:1}.wizard-navigation{position:static;padding:12px 0;background:#f2f6ef}.wizard-error{margin-bottom:12px}
+.wizard-actions,.wizard-navigation{display:flex;gap:10px}.wizard-actions{flex-wrap:wrap}.wizard-actions button,.wizard-navigation button{min-height:48px;flex:1}.wizard-navigation button{min-width:0;touch-action:manipulation}.wizard-error{margin:0 0 12px;padding:10px 12px;background:#fff2ef;border:1px solid #ebc5bc;border-radius:8px;scroll-margin-top:160px}.wizard-error:empty{display:none}
 .wizard-choice{display:flex;flex-wrap:wrap;gap:12px}.wizard-choice legend{font-weight:700;font-size:14px}.wizard-choice label{display:flex;align-items:center;gap:8px;min-height:48px;border:1px solid #c8d8bd;padding:10px 14px;border-radius:10px;flex:1}.wizard-choice input{width:auto;accent-color:#527b32}
 .wizard-time{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .wizard-selection{list-style:none;padding:0;margin:0;display:grid;gap:8px}.wizard-selection li{display:flex;justify-content:space-between;gap:12px;padding:10px;border-bottom:1px solid #e0e9d9;font-size:13px}
 .wizard-review-lines{padding-left:20px;display:grid;gap:14px}.wizard-review-lines li{overflow-wrap:anywhere}.wizard-text,#wizard-paste-preview pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}
 .service-line{padding:14px;background:#f6f9f3;margin-top:8px}.service-line legend{font-size:14px}.wizard-card .category-tabs{max-width:100%}
-@media(min-width:900px){#quote-wizard{max-width:1000px}.wizard-card{padding:24px}.wizard-navigation{max-width:1000px}}
-@media(max-width:700px){.wizard-card{padding:14px}.wizard-progress{padding:14px}.wizard-card .line-editor{grid-template-columns:1fr}.wizard-time input,.wizard-time select{padding:10px 8px}.wizard-card .quote-line-heading{align-items:flex-start}.wizard-card .quote-line-heading h3{font-size:16px}}
+@media(min-width:900px){#quote-wizard{max-width:1000px}.wizard-card{padding:24px}}
+@media(max-width:700px){.quote-wizard-active .sidebar{padding:8px 12px;gap:8px}.quote-wizard-active .navigation-toggle{min-height:44px}.quote-wizard-active .sidebar .sky-logo{height:36px}.wizard-card{padding:14px}.wizard-progress h1{font-size:16px}.wizard-toolbar{padding-top:6px}.wizard-card .line-editor{grid-template-columns:1fr}.wizard-time input,.wizard-time select{padding:10px 8px}.wizard-card .quote-line-heading{align-items:flex-start}.wizard-card .quote-line-heading h3{font-size:16px}}
 @media(max-width:319px){nav.main-menu-grid{grid-template-columns:1fr}.sidebar .brand{font-size:18px}.sidebar .sky-brand{font-size:16px}.sidebar .sky-logo{width:40px}.navigation-toggle{min-width:78px}.home-welcome img{width:48px}.home-welcome strong{font-size:14px}}
 @media(max-width:700px){.category-tabs{flex-wrap:wrap;overflow:visible}}
 

@@ -16,9 +16,41 @@ const KEY='skybike-cusco-demo-v1';
  const base=process.env.DEMO_URL||'http://127.0.0.1:8005/';
  const state=()=>page.evaluate(key=>JSON.parse(localStorage.getItem(key)),KEY);
  const step=async n=>{await page.waitForFunction(n=>document.querySelector('#wizard-step')?.textContent===`Paso ${n} de 6`,n);};
- const next=async n=>{await page.locator('#wizard-next').click();await step(n);};
- const previous=async n=>{await page.locator('#wizard-prev').click();await step(n);};
+ const next=async n=>{await controlsAtBottom(`Siguiente al paso ${n}`);await page.locator('#wizard-next').click();await step(n);};
+ const previous=async n=>{await controlsAtBottom(`Anterior al paso ${n}`);await page.locator('#wizard-prev').click();await step(n);};
  const noOverflow=async label=>assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),label);
+ async function compact(label){
+  assert.equal(await page.locator('#app').getAttribute('data-quote-view'),'asistente',label);
+  assert.equal(await page.locator('#app .page-heading,#app .module-shortcuts').count(),0,`${label}: sin cabecera ni accesos duplicados`);
+  assert.equal(await page.locator('.wizard-toolbar').count(),1,`${label}: una barra superior`);
+  assert.equal(await page.locator('#wizard-step').count(),1);
+  assert.equal(await page.locator('#wizard-prev').count(),1);assert.equal(await page.locator('#wizard-next').count(),1);
+  assert.equal(await page.locator('.wizard-toolbar').getByRole('link',{name:'Volver al inicio',exact:true}).count(),1);
+  assert.ok(await page.locator('#wizard-form').evaluate(form=>{
+   const toolbar=form.querySelector('.wizard-toolbar'),body=form.querySelector('.wizard-card');
+   return !!toolbar&&!!body&&toolbar.contains(form.querySelector('.wizard-navigation'))&&!!(toolbar.compareDocumentPosition(body)&Node.DOCUMENT_POSITION_FOLLOWING);
+  }),`${label}: controles y contenido pertenecen al mismo formulario y la barra aparece primero`);
+ }
+ async function controlsAtBottom(label){
+  await compact(label);
+  await page.evaluate(()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:'instant'}));
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  assert.equal(await page.locator('.wizard-toolbar').evaluate(el=>getComputedStyle(el).position),'sticky',`${label}: barra fija al desplazarse`);
+  for(const selector of ['#wizard-prev','#wizard-next']){
+   assert.ok(await page.locator(selector).evaluate(button=>{
+    const box=button.getBoundingClientRect(),target=document.elementFromPoint(box.x+box.width/2,box.y+box.height/2);
+    return box.top>=0&&box.bottom<=innerHeight&&box.left>=0&&box.right<=innerWidth&&box.height>=44&&!!target&&(target===button||button.contains(target));
+   }),`${label}: ${selector} visible, cómodo y sin elementos encima al final de la página`);
+  }
+ }
+ async function visibleError(text){
+  const alert=page.getByRole('alert').filter({hasText:text});await alert.waitFor();
+  await page.waitForFunction(()=>{
+   const error=document.querySelector('.wizard-error');if(!error)return false;
+   const box=error.getBoundingClientRect(),target=document.elementFromPoint(box.x+box.width/2,box.y+box.height/2);
+   return box.height>0&&box.top>=0&&box.bottom<=innerHeight&&!!target&&(target===error||error.contains(target));
+  });
+ }
  async function sizes(label){
   for(const width of [280,320,375,390,430,768,1440]){
    await page.setViewportSize({width,height:844});await noOverflow(`${label} ${width}px`);
@@ -31,6 +63,7 @@ const KEY='skybike-cusco-demo-v1';
      assert.equal(await card.getByRole('button',{name:/Ver ficha|Cambiar fotografía/}).count(),0);
     }
    }
+   await controlsAtBottom(`${label} ${width}px`);
   }
   await page.setViewportSize({width:390,height:844});
  }
@@ -50,7 +83,7 @@ const KEY='skybike-cusco-demo-v1';
   await page.getByRole('link',{name:'Volver al inicio'}).waitFor();
   assert.equal(await page.locator('#wizard-prev').isDisabled(),true);
   await sizes('cliente');
-  await page.locator('#wizard-next').click();await step(1);await page.getByRole('alert').filter({hasText:'nombre'}).waitFor();
+  await controlsAtBottom('cliente vacío');await page.locator('#wizard-next').click();await step(1);await visibleError('nombre');
   await page.locator('#wizard-whatsapp').fill('Nombre: Cliente Wizard DEMO\nDNI: DEMO-WIZARD-001\nWhatsApp: +51 900000001\nTour: Skybike\nFecha: 20/11/2026\nHora: 9:30 AM\nPasajeros: 2');
   await page.getByRole('button',{name:'Rellenar automáticamente',exact:true}).click();
   assert.equal(await page.getByLabel('Nombre completo',{exact:true}).inputValue(),'');
@@ -60,20 +93,20 @@ const KEY='skybike-cusco-demo-v1';
   assert.equal(await page.getByLabel('WhatsApp',{exact:true}).inputValue(),'900000001');
   const parsedTour=(await state()).quoteDraft.lines.find(l=>l.productId==='sky');
   assert.equal(parsedTour.date,'2026-11-20');assert.equal(parsedTour.time,'09:30');assert.equal(Number(parsedTour.qty),2);
-  await page.getByLabel('WhatsApp',{exact:true}).fill('123456');await page.locator('#wizard-next').click();await step(1);await page.getByRole('alert').filter({hasText:'WhatsApp'}).waitFor();
+  await page.getByLabel('WhatsApp',{exact:true}).fill('123456');await controlsAtBottom('WhatsApp inválido');await page.locator('#wizard-next').click();await step(1);await visibleError('WhatsApp');
   await page.getByLabel('WhatsApp',{exact:true}).fill('900000001');await next(2);
   assert.equal(await page.locator('[name="exchangeRate"]').count(),0);
   await page.locator('[name="language"][value="en"]').check();
-  await page.reload();await step(2);assert.equal(await page.locator('[name="language"][value="en"]').isChecked(),true);
+  await page.reload();await step(2);await compact('recarga del asistente');assert.equal(await page.locator('[name="language"][value="en"]').isChecked(),true);
   await page.locator('[name="language"][value="es"]').check();await page.reload();await step(2);assert.equal(await page.locator('[name="language"][value="es"]').isChecked(),true);await page.locator('[name="language"][value="en"]').check();
   await page.locator('[name="currency"][value="USD"]').check();
   await page.getByLabel('US$ 1.00 = S/ · Tipo de cambio manual',{exact:true}).fill('0');
-  await page.locator('#wizard-next').click();await step(2);await page.getByRole('alert').filter({hasText:'tipo de cambio'}).waitFor();
+  await controlsAtBottom('cambio inválido');await page.locator('#wizard-next').click();await step(2);await visibleError('tipo de cambio');
   await page.getByLabel('US$ 1.00 = S/ · Tipo de cambio manual',{exact:true}).fill('3.8');
   await sizes('internacional');await next(3);
   await sizes('selección');
   await page.locator('.wizard-selection').getByRole('button',{name:'Quitar',exact:true}).click();
-  await page.locator('#wizard-next').click();await step(3);await page.getByRole('alert').filter({hasText:'al menos un tour'}).waitFor();
+  await controlsAtBottom('selección vacía');await page.locator('#wizard-next').click();await step(3);await visibleError('al menos un tour');
   const add=productId=>page.locator(`#wizard-catalog .compact-catalog-add[data-id="${productId}"]`);
   assert.match(await page.locator('.shop-product').filter({has:page.locator('[data-id="sky"]')}).locator('.shop-price').innerText(),/31\.58/);
   await add('sky').click();await add('sky').click();
@@ -90,14 +123,14 @@ const KEY='skybike-cusco-demo-v1';
   await previous(2);await page.locator('[name="currency"][value="USD"]').check();assert.equal(await page.locator('[name="exchangeRate"]').inputValue(),'3.8');await next(3);await next(4);
   const sky=page.locator('[data-line]').filter({has:page.getByRole('heading',{name:'Skybike · aventura en las alturas',exact:true})});
   const valle=page.locator('[data-line]').filter({has:page.getByRole('heading',{name:'Valle Sagrado · ruta cultural',exact:true})});
-  await sky.getByLabel('Fecha del tour · dd/mm/aaaa',{exact:true}).fill('');await page.locator('#wizard-next').click();await step(4);await page.getByRole('alert').filter({hasText:'fecha'}).waitFor();
+  await sky.getByLabel('Fecha del tour · dd/mm/aaaa',{exact:true}).fill('');await controlsAtBottom('fecha inválida');await page.locator('#wizard-next').click();await step(4);await visibleError('fecha');
   await sky.getByLabel('Fecha del tour · dd/mm/aaaa',{exact:true}).fill('2026-11-20');
   await sky.getByLabel('Hora',{exact:true}).fill('9');await sky.getByLabel('Minutos',{exact:true}).fill('15');await sky.getByLabel('AM/PM',{exact:true}).selectOption('AM');
   await sky.getByLabel('Pasajeros',{exact:true}).fill('2');await sky.getByRole('button',{name:'Personalizar descuento por pasajero'}).click();
   await sky.locator('.person-discount').nth(0).fill('10');await sky.locator('.person-discount').nth(1).fill('20');
   await valle.getByLabel('Fecha del tour · dd/mm/aaaa',{exact:true}).fill('2026-11-21');
   await valle.getByLabel('Hora',{exact:true}).fill('12');await valle.getByLabel('Minutos',{exact:true}).fill('45');await valle.getByLabel('AM/PM',{exact:true}).selectOption('PM');
-  await valle.getByLabel('Pasajeros',{exact:true}).fill('3');await valle.getByLabel('Descuento por persona · PEN',{exact:true}).fill('200');await page.locator('#wizard-next').click();await step(4);await page.getByRole('alert').filter({hasText:'descuento'}).waitFor();
+  await valle.getByLabel('Pasajeros',{exact:true}).fill('3');await valle.getByLabel('Descuento por persona · PEN',{exact:true}).fill('200');await controlsAtBottom('descuento inválido');await page.locator('#wizard-next').click();await step(4);await visibleError('descuento');
   await valle.getByLabel('Descuento por persona · PEN',{exact:true}).fill('5');
   for(const row of [sky,valle]){await row.getByLabel('Servicio para este tour',{exact:true}).selectOption('food');await row.getByRole('button',{name:'Agregar servicio'}).click();}
   assert.equal(await sky.locator('[data-service] [name="qty"]').inputValue(),'2');
@@ -114,7 +147,7 @@ const KEY='skybike-cusco-demo-v1';
   assert.equal(draft.lines.find(l=>l.productId==='food'&&l.parentId===valled.id).qty,'1');
   await page.reload();await step(4);assert.equal(await sky.locator('.person-discount').nth(1).inputValue(),'20');
   await sizes('detalles');await next(5);
-  await page.getByLabel('Vigencia de la cotización (días)',{exact:true}).fill('0');await page.locator('#wizard-next').click();await step(5);await page.getByRole('alert').filter({hasText:'vigencia'}).waitFor();
+  await page.getByLabel('Vigencia de la cotización (días)',{exact:true}).fill('0');await controlsAtBottom('vigencia inválida');await page.locator('#wizard-next').click();await step(5);await visibleError('vigencia');
   await page.getByLabel('Vigencia de la cotización (días)',{exact:true}).fill('14');
   await page.getByLabel('Observaciones',{exact:true}).fill('Observación ficticia wizard.');await page.getByLabel('Condiciones',{exact:true}).fill('Condiciones ficticias wizard.');
   assert.match(await page.locator('#quote-total .grand-total').innerText(),/167\.11/);
@@ -132,7 +165,7 @@ const KEY='skybike-cusco-demo-v1';
   assert.deepEqual(after.draft,legacyDraft);assert.equal(await page.evaluate(()=>localStorage.getItem('nexo-demo-v1')),'DEMO WIZARD NO MODIFICAR');
   assert.equal((await state()).quoteDraft.lines.length,0);
   assert.deepEqual(errors,[]);
-  console.log('PASS wizard: seis pasos, validaciones, WhatsApp revisado, PEN/USD sin mutación, ES/EN, tours/servicios separados, descuentos, duplicados, reload y siete tamaños; guardar no crea reservas ni pagos.');
+  console.log('PASS wizard: asistente compacto, barra única con controles accesibles al final de página en siete tamaños, errores visibles, seis pasos, WhatsApp revisado, PEN/USD, descuentos, persistencia y guardado sin reservas ni pagos.');
  }catch(error){failure=error;try{if(page&&!page.isClosed())await page.screenshot({path:join(artifacts,'skybike-wizard-failure.png'),fullPage:true});}catch{}throw error;}
  finally{
   let cleanupError;

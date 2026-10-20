@@ -118,6 +118,9 @@ const assertPDF=buffer=>{assert.equal(buffer.subarray(0,4).toString(),'%PDF');as
 
   // Editar conserva todas las líneas y el número, sin producir otra cotización.
   await success.locator('[data-action="quote-edit"]').click();await page.locator('#quote-wizard').waitFor();
+  assert.equal(await page.locator('#app').getAttribute('data-quote-view'),'asistente','Editar entra directamente al asistente compacto');
+  assert.equal(await page.locator('#app .page-heading,#app .module-shortcuts').count(),0);
+  assert.equal(await page.locator('.wizard-toolbar').count(),1);
   const editing=(await state(page)).quoteDraft;
   assert.equal(editing.customerName,quote.client.name);assert.equal(editing.customerPhone,'900000000');
   assert.deepEqual(editing.lines,quote.lines);

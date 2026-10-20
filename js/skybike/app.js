@@ -55,6 +55,11 @@ function render(){
  app.dataset.route=Object.hasOwn(titles,location.hash.slice(1))?location.hash.slice(1):'panel';
  if(category&&!categories().includes(category))category='';
  route=Object.hasOwn(titles,location.hash.slice(1))?location.hash.slice(1):'panel';
+ // La ruta del asistente abre el formulario directamente; el catálogo y el
+ // listado conservan sus encabezados y accesos como vistas de inicio.
+ const quoteView=route==='cotizador'?'asistente':['catalogo','cotizaciones'].includes(route)?'inicio':null;
+ if(quoteView)app.dataset.quoteView=quoteView;else delete app.dataset.quoteView;
+ document.body.classList.toggle('quote-wizard-active',quoteView==='asistente');
  document.querySelectorAll('nav a').forEach(a=>{const active=a.hash===`#${route}`;a.classList.toggle('active',active);if(active)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
  let content='';
  if(route==='panel')content=homeMenu();
@@ -74,7 +79,7 @@ function render(){
  if(route==='documentos')content=`<div class="info-note">Puedes imprimir o usar «Guardar como PDF» del navegador. Los comprobantes son de prueba. Los flyers se incluyen opcionalmente solo en cotizaciones; no en comprobantes ni reservas.</div><section class="card"><div class="card-heading"><h2>Recibos de demostración</h2>${button('receipt-new','＋ Nuevo comprobante')}</div>${table(['Recibo','Reserva','Cliente','Acción'],state.receipts.map(r=>`<tr><td>${esc(r.number)}</td><td>${esc(state.reservations.find(x=>x.id===r.reservationId)?.number)}</td><td>${esc(r.client.name)}</td><td>${button('receipt','Abrir recibo',r.id)}</td></tr>`))}</section><section class="card spaced"><div class="card-heading"><h2>Fichas informativas de referencia</h2></div><div class="flyer-list">${state.products.filter(p=>p.type==='Tour'&&!p.archivedAt).map(p=>button('tour-info',esc(p.name),p.id,true)).join('')}</div></section>`;
  if(route==='historial')content=operations.historyHTML();
  if(route==='reportes')content=operations.reportHTML();
- app.innerHTML=['panel','cotizacion-generada'].includes(route)?content:`${route!=='panel'?'<a class="back-home" href="#panel">← Volver al inicio</a>':''}<div class="page-heading"><div><span class="eyebrow">AGENCIA SKYBIKE CUSCO · ETAPAS A–F</span><h1 tabindex="-1">${titles[route]}</h1><p>${route==='panel'?'SKYBIKE CUSCO · Tu agencia, a un toque.':route==='catalogo'?'Selecciona con imágenes. Ajusta cada experiencia a tus pasajeros.':'Demostración funcional · Tus datos originales permanecen intactos.'}</p></div>${route==='cotizaciones'?'<a class="hero-link" href="#cotizador">＋ Nueva cotización</a>':''}</div>${moduleLinks(route)}${content}`;
+ app.innerHTML=quoteView==='asistente'||['panel','cotizacion-generada'].includes(route)?content:`${route!=='panel'?'<a class="back-home" href="#panel">← Volver al inicio</a>':''}<div class="page-heading"><div><span class="eyebrow">AGENCIA SKYBIKE CUSCO · ETAPAS A–F</span><h1 tabindex="-1">${titles[route]}</h1><p>${route==='panel'?'SKYBIKE CUSCO · Tu agencia, a un toque.':route==='catalogo'?'Selecciona con imágenes. Ajusta cada experiencia a tus pasajeros.':'Demostración funcional · Tus datos originales permanecen intactos.'}</p></div>${route==='cotizaciones'?'<a class="hero-link" href="#cotizador">＋ Nueva cotización</a>':''}</div>${moduleLinks(route)}${content}`;
  if(route==='cotizacion-generada'){const q=state.quotes.find(q=>q.id===state.lastQuoteId);prepareQuoteSuccess({quote:q,root:app});app.querySelector('#success-include-flyers')?.addEventListener('change',()=>prepareQuoteSuccess({quote:repository.load().quotes.find(q=>q.id===state.lastQuoteId),root:app}));}
  if(route==='cotizador')mountQuoteWizard(app.querySelector('#quote-wizard'),{getState:()=>state,save:saveQuoteDraft,finish:finishQuote,esc});
 }

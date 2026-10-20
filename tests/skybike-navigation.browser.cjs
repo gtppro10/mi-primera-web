@@ -18,6 +18,11 @@ try{
  const before=await page.evaluate(()=>localStorage.getItem('skybike-cusco-demo-v1'));
  for(const route of ['documentos','cotizador','reservas','pagos','tours','servicios','pasajeros','administracion','reportes']){
  await page.locator(`.module-card[href="#${route}"]`).click();await page.waitForFunction(route=>location.hash==='#'+route,route);await page.getByRole('link',{name:'Volver al inicio'}).waitFor();assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${width} ${route}`);
+ if(route==='cotizador'){
+  assert.equal(await page.locator('#app').getAttribute('data-quote-view'),'asistente');
+  assert.equal(await page.locator('#app .page-heading,#app .module-shortcuts').count(),0,'El menú abre directamente el asistente');
+  assert.equal(await page.locator('.wizard-toolbar,#wizard-prev,#wizard-next').count(),3,'Una sola barra y un botón de cada dirección');
+ }
  if(route==='administracion'){await page.getByText('Administración aún no está habilitada',{exact:true}).waitFor();assert.equal(await page.locator('#app input,#app form').count(),0);}
  await page.getByRole('link',{name:'Volver al inicio'}).click();await page.getByRole('heading',{name:'Menú principal',exact:true}).waitFor();assert.ok(await page.evaluate(()=>scrollY<10));
  }
@@ -25,8 +30,13 @@ try{
  }
  await page.setViewportSize({width:390,height:844});await page.goto(base);const toggle=page.getByRole('button',{name:'Menú',exact:false});await toggle.click();assert.equal(await toggle.getAttribute('aria-expanded'),'true');await page.locator('#sidebar-navigation a[href="#historial"]').click();await page.waitForFunction(()=>document.querySelector('#navigation-toggle').getAttribute('aria-expanded')==='false');assert.equal(await toggle.getAttribute('aria-expanded'),'false');await page.getByRole('link',{name:'Volver al inicio'}).click();
  await page.locator('.module-card[href="#reportes"]').click();await page.getByRole('link',{name:'Resumen de la agencia'}).click();await page.getByRole('heading',{name:'Tu próxima aventura empieza aquí',exact:true}).waitFor();await page.getByRole('link',{name:'Volver al inicio'}).click();
- await page.locator('.module-card[href="#cotizador"]').click();await page.getByRole('link',{name:'Cotizaciones guardadas'}).click();await page.getByRole('heading',{name:'Cotizaciones',exact:true}).waitFor();await page.getByRole('link',{name:'Volver al inicio'}).click();
- await page.waitForFunction(()=>document.activeElement===document.querySelector('.home-welcome h1'));await page.keyboard.press('Tab');assert.ok(await page.locator('.module-card[href="#documentos"]').evaluate(el=>el===document.activeElement));assert.deepEqual(errors,[]);console.log('PASS navegación: 9 tarjetas, 2 columnas móviles, 3 escritorio, 7 tamaños, regreso al inicio, menú plegable y datos intactos.');
+ await page.locator('.module-card[href="#cotizador"]').click();await page.getByRole('link',{name:'Volver al inicio'}).click();await toggle.click();await page.locator('#sidebar-navigation a[href="#cotizaciones"]').click();await page.getByRole('heading',{name:'Cotizaciones',exact:true}).waitFor();assert.equal(await page.locator('#app').getAttribute('data-quote-view'),'inicio');await page.getByRole('link',{name:'Volver al inicio'}).click();
+ // El catálogo sigue siendo la pantalla de entrada; revisar abre solo el asistente.
+ await toggle.click();await page.locator('#sidebar-navigation a[href="#catalogo"]').click();await page.getByRole('heading',{name:'Descubre nuestros tours',exact:true}).waitFor();assert.equal(await page.locator('#app').getAttribute('data-quote-view'),'inicio');
+ await page.locator('#cards [data-action="add"][data-id="sky"]').last().click();await page.getByRole('button',{name:'Revisar cotización'}).click();await page.locator('#wizard-form').waitFor();
+ assert.equal(await page.locator('#app').getAttribute('data-quote-view'),'asistente');assert.equal(await page.locator('#app .page-heading,#app .module-shortcuts').count(),0);
+ await page.reload();await page.locator('#wizard-form').waitFor();assert.equal(await page.locator('#app').getAttribute('data-quote-view'),'asistente');assert.equal(await page.locator('.wizard-toolbar').count(),1);assert.equal(await page.locator('#app .page-heading,#app .module-shortcuts').count(),0);await page.getByRole('link',{name:'Volver al inicio'}).click();
+ await page.waitForFunction(()=>document.activeElement===document.querySelector('.home-welcome h1'));await page.keyboard.press('Tab');assert.ok(await page.locator('.module-card[href="#documentos"]').evaluate(el=>el===document.activeElement));assert.deepEqual(errors,[]);console.log('PASS navegación: 9 tarjetas, 7 tamaños, asistente directo desde menú/catálogo, recarga compacta, guardados desde menú global, regreso al inicio, teclado y datos intactos.');
 }catch(error){failure=error;try{if(page&&!page.isClosed())await page.screenshot({path:join(artifacts,'skybike-navigation-failure.png'),fullPage:true});}catch{}throw error;}
 finally{
  let cleanupError;
