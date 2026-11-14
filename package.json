@@ -14,7 +14,7 @@
     "audit:security": "npm audit --audit-level=low"
   },
   "devDependencies": {
-    "playwright": "1.64.1"
+    "playwright": "1.65.0"
   },
   "dependencies": {
     "jspdf": "4.2.1",
